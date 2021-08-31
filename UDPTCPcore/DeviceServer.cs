@@ -1,0 +1,135 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using NetCoreServer;
+using System;
+using System.IO;
+using Microsoft.Extensions.Logging;
+using System.Net.Sockets;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Collections.Generic;
+using MP3_ADU;
+using System.Diagnostics;
+using System.Threading;
+
+namespace UDPTCPcore
+{
+    class DeviceServer : TcpServer
+    {
+        private readonly ILogger<DeviceServer> _log;
+
+        //DeviceSession deviceSession;
+        //internal ChatSession ChatSession { get => chatSession; }
+        internal List<DeviceSession> listDeviceSession { get; private set; }
+        internal ConcurrentDictionary<Guid, TcpSession> listSesions { get => Sessions; }
+        public DeviceServer(IPAddress address, int port, ILogger<DeviceServer> log) : base(address, port)
+        {
+            _log = log;
+            _log.LogInformation($"TCP server port: {port}");
+            listDeviceSession = new List<DeviceSession>();
+        }
+        internal void Run()
+        {
+            // Start the server
+            _log.LogInformation("Server starting...");
+            Start();
+            _log.LogInformation("Server Done!");
+
+            List<string> soundList = new List<string>()
+            {
+                @"E:\truyenthanhproject\mp3\bai1.mp3",
+                @"E:\truyenthanhproject\mp3\bai2.mp3",
+                @"E:\truyenthanhproject\mp3\bai3.mp3"
+            };
+
+            const int NUM_OF_FRAME_SEND_PER_PACKET = 40;
+            const int MAX_MAIN_DATA_BEGIN_BYTES = (int)1 << 9 ;
+            const int FRAME_SIZE = 144;
+            const int FRAME_TIME_MS = 24;
+
+            long curTime;
+
+            while (true)
+            {
+                //send 
+                foreach(var song in soundList)
+                {
+                    using(FileStream mp3Song = new FileStream(song, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        MP3_Frame_CBR mp3Read = new MP3_Frame_CBR(mp3Song);
+                        if (!mp3Read.CheckValidMP3(2, 48, 24000)) continue;
+
+                        Stopwatch sendWatch = new Stopwatch();
+                        sendWatch.Start();
+                        long sendTime = 0;
+                        UInt32 frameID = 0, oldFrameID = 0;
+                        //read frame and send
+                        while(true)
+                        {
+
+                            //get frame
+                            int totalLen = 0;
+                            byte[] tmp;
+                            List<byte[]> mp3FrameList = new List<byte[]>();
+                            for (int i = 0; i < NUM_OF_FRAME_SEND_PER_PACKET; i++)
+                            {
+                                if(i == 0)
+                                {
+                                    tmp = mp3Read.ReadNextADU();
+                                }
+                                else
+                                {
+                                    tmp = mp3Read.ReadNextFrame();
+                                }
+                                if (tmp == null) break;
+                                totalLen += tmp.Length;
+                                mp3FrameList.Add(tmp);
+                                frameID++;
+                            }
+
+                            if(totalLen > 0)
+                            {
+                                curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                                byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, totalLen, mp3Read.Frame_size, oldFrameID, curTime);
+
+                                //send packet
+                                foreach(var dv in listDeviceSession)
+                                {
+                                    dv.SendPackAssync(sendBuff, sendBuff.Length, DeviceSession.SendPackeTypeEnum.PacketMP3);
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                            oldFrameID = frameID;
+
+                            sendTime++;
+                            long offsetTime = sendTime * NUM_OF_FRAME_SEND_PER_PACKET * FRAME_TIME_MS - sendWatch.ElapsedMilliseconds;
+                            if(offsetTime > 0)
+                            {
+                                Thread.Sleep((int)offsetTime);
+                            }
+
+                            //dipose
+                            mp3FrameList.Clear();
+                        }
+                    }
+                }
+            }
+        }
+
+        protected override TcpSession CreateSession()
+        {
+            return Program.host.Services.GetRequiredService<DeviceSession>();
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            _log.LogError($"DeviceServer error {error}");
+        }
+        protected override void OnConnected(TcpSession session)
+        {
+            base.OnConnected(session);
+        }
+    }
+}
