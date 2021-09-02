@@ -41,7 +41,7 @@ namespace UDPTCPcore
                 @"E:\truyenthanhproject\mp3\bai3.mp3"
             };
 
-            const int NUM_OF_FRAME_SEND_PER_PACKET = 40;
+            const int NUM_OF_FRAME_SEND_PER_PACKET = 3;
             const int MAX_MAIN_DATA_BEGIN_BYTES = (int)1 << 9 ;
             const int FRAME_SIZE = 144;
             const int FRAME_TIME_MS = 24;
@@ -78,7 +78,7 @@ namespace UDPTCPcore
                                 }
                                 else
                                 {
-                                    tmp = mp3Read.ReadNextFrame();
+                                    tmp = mp3Read.ReadNextFrame(false);
                                 }
                                 if (tmp == null) break;
                                 totalLen += tmp.Length;
@@ -89,12 +89,13 @@ namespace UDPTCPcore
                             if(totalLen > 0)
                             {
                                 curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                                byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, totalLen, mp3Read.Frame_size, oldFrameID, curTime);
+                                byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, curTime, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
 
                                 //send packet
                                 foreach(var dv in listDeviceSession)
                                 {
-                                    dv.SendPackAssync(sendBuff, sendBuff.Length, DeviceSession.SendPackeTypeEnum.PacketMP3);
+                                    dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE);
+                                    //dv.SendPackAssync(sendBuff, sendBuff.Length, DeviceSession.SendPackeTypeEnum.PacketMP3);
                                 }
                             }
                             else

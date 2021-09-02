@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Timers;
 using System.Threading;
+using System.Text;
 
 namespace UDPTCPcore
 {
@@ -20,8 +21,9 @@ namespace UDPTCPcore
 
         static void Main(string[] args)
         {
+            
 
-            MD5.MD5Hash("hello, anh dep zai!!!");
+            //MD5.MD5Hash("hello, anh dep zai!!!");
             //RSA rsa = new RSA(); rsa.Run();
             StartUp();
             //var svc = ActivatorUtilities.CreateInstance<IGreetingService>(host.Services);
@@ -31,7 +33,11 @@ namespace UDPTCPcore
             //RSA rsa = new RSA(); rsa.Run();
             //byte[] test = new byte[0]; //still correct
             DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
-            deviceServer.Run();
+            //deviceServer.Run();
+            deviceServer.Start();
+            NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
+            ntpServer.Start();
+            while (true) { }
         }
 
         static void BuildConfig(IConfigurationBuilder builder)
@@ -84,9 +90,74 @@ namespace UDPTCPcore
                         return deviceSession;
                     });
 
+                    services.AddTransient<TLSSession>(sp =>
+                    {
+                        TLSSession tlsSession = new TLSSession(
+                            sp.GetRequiredService<DeviceServer>(),
+                            sp.GetRequiredService<ILogger<TLSSession>>());
+                        return tlsSession;
+                    });
+
+                    services.AddSingleton<NTPServer>(sp =>
+                    {
+                        NTPServer ntpServer = new NTPServer(IPAddress.Any, configurationroot.GetSection("DeviceServer").GetValue<int>("DevicePort"),
+                            sp.GetRequiredService<ILogger<NTPServer>>());
+                        return ntpServer;
+                    });
+
                 })
                 .UseSerilog()
                 .Build();
         }
     }
 }
+
+//namespace UdpEchoServer
+//{
+
+//    class Program
+//    {
+//        static void Main(string[] args)
+//        {
+//            // UDP server port
+//            int port = 3333;
+//            if (args.Length > 0)
+//                port = int.Parse(args[0]);
+
+//            Console.WriteLine($"UDP server port: {port}");
+
+//            Console.WriteLine();
+
+//            // Create a new UDP echo server
+//            var server = new EchoServer(IPAddress.Any, port);
+
+//            // Start the server
+//            Console.Write("Server starting...");
+//            server.Start();
+//            Console.WriteLine("Done!");
+
+//            Console.WriteLine("Press Enter to stop the server or '!' to restart the server...");
+
+//            // Perform text input
+//            for (; ; )
+//            {
+//                string line = Console.ReadLine();
+//                if (string.IsNullOrEmpty(line))
+//                    break;
+
+//                // Restart the server
+//                if (line == "!")
+//                {
+//                    Console.Write("Server restarting...");
+//                    server.Restart();
+//                    Console.WriteLine("Done!");
+//                }
+//            }
+
+//            // Stop the server
+//            Console.Write("Server stopping...");
+//            server.Stop();
+//            Console.WriteLine("Done!");
+//        }
+//    }
+//}

@@ -269,12 +269,16 @@ namespace MP3_ADU
         }
 
         int oldPos = 0; //for read next frame
-        public byte[] ReadNextFrame()
+        public byte[] ReadNextFrame(bool AddHeader) //AddHeader = false, don't get header(4B) at the begin of frame
         {
             if ((oldPos + frame_size) > endPoint) return null;
-            byte[] buff = new byte[frame_size];
+
+            int tmpOffset = 4;
+            if (AddHeader) tmpOffset = 0;
+
+            byte[] buff = new byte[frame_size - tmpOffset];
             //mp3_buff.Read(buff, oldPos, frame_size);
-            if (!MP3ReadOffset(oldPos, buff, 0, frame_size)) return null;
+            if (!MP3ReadOffset(oldPos + tmpOffset, buff, 0, buff.Length)) return null;
             oldPos += frame_size;
             return buff;
         }
@@ -351,6 +355,8 @@ namespace MP3_ADU
 
             //get remain main_data
             if (!MP3ReadOffset(startPointMDB, ADUframe, ADUframeOffset, main_data_size)) return null;
+
+            oldPos += frame_size; //turn to next frame
 
             return ADUframe;
         }

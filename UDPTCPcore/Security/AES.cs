@@ -452,6 +452,28 @@ namespace Security
             return output;
         }
 
+        //make sure length is multiple of 16 (block size) and did padding random
+        static internal byte[] AES_Encrypt_Overwrite(byte[] input, int offset, int length, byte[] key)
+        {
+            if ((length % 16) != 0) return null;
+            int blockNum = length / 16;
+            for (int i = 0; i < blockNum; i++)
+            {
+                AES_Encrypt_Block(input, i * 16 + offset, key);
+            }
+            return input;
+        }
+
+        //no padding: Ex: len = 15 -> no encrypt; len = 18, just encrypt 16 first bytes
+        static internal byte[] AES_Encrypt_Overwrite_Nopadding(byte[] input, int offset, int length, byte[] key)
+        {
+            int blockNum = length / 16;
+            for (int i = 0; i < blockNum; i++)
+            {
+                AES_Encrypt_Block(input, i * 16 + offset, key);
+            }
+            return input;
+        }
 
         //encrypt long packet (need to seperate to multi block)
         static internal byte[] AES_Decrypt(byte[] input, int offset, int length, byte[] key, bool overwrite)
