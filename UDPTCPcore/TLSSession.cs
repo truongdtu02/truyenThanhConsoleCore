@@ -321,6 +321,11 @@ namespace UDPTCPcore
             else 
             {
                 if (IsHandshaked) ErrorRecv = false;
+                if(curPacketSize == 4) 
+                {
+                    int diff = BitConverter.ToInt32(Tcpbuff, 0);
+                    _log.LogInformation($"Diff NTP: {diff}");
+                }
             } //keep alive, nothing can't do    
             
             if (ErrorRecv)
