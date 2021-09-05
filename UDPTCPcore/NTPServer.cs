@@ -61,7 +61,7 @@ namespace UDPTCPcore
 
                 SendAsync(endpoint, sendBuff);
 
-                //Console.WriteLine(DateTimeOffset.Now);
+                Console.WriteLine($"NTP {curTime}");
 
                 //byte[] ntpBuffer = new byte[4 + 8]; //4B client time and 8B server time
                 //System.Buffer.BlockCopy(buffer, (int)offset, ntpBuffer, 0, 4);
