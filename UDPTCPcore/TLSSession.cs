@@ -6,12 +6,13 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Net.Sockets;
 using System.Timers;
+using System.Threading;
 
 namespace UDPTCPcore
 {
     class TLSSession : TcpSession
     {
-        const int CONNECT_TIMEOUT = 10000; //10s for TLS handshake
+        const int CONNECT_TIMEOUT = 1000000; //10s for TLS handshake
         const int KEEP_ALIVE_TIMEOUT = 1200000; //120s for keep alive after handshake
         internal bool IsHandshaked { get; private set; } //get successfull AES key
         public RSA rsa;
@@ -47,7 +48,7 @@ namespace UDPTCPcore
 
         //** protected properties
         protected int tokenLen = 24;
-        protected int TCP_BUFF_LEN_MAX = 10000;
+        protected int TCP_BUFF_LEN_MAX = 30000;
 
         //** virtual methods, need to override
         //derived can use to do something when client TLS handshake is successful, like add to list
@@ -217,6 +218,18 @@ namespace UDPTCPcore
             return true;
         }
 
+        //use for salt, Token and AES packet sent from client
+        bool CheckMD5NoDecrypt(byte[] inputData, int offsetData, int countData, byte[] inputMD5, int offsetMD5)
+        {
+            byte[] hashed = MD5.MD5Hash(inputData, offsetData, countData);
+            //CompareMD5 (16B)
+            for (int i = 0; i < TcpPacketStruct.SIZE_OF_MD5; i++)
+            {
+                if (hashed[i] != inputMD5[offsetMD5 + i]) return false;
+            }
+            return true;
+        }
+
         enum SaltEnum { Add, Sub};
         void ConvertTextWithSalt(byte[] data, int offset, int len, SaltEnum saltType)
         {
@@ -245,9 +258,18 @@ namespace UDPTCPcore
                 }
             }
         }
-
+        int totalBytes = 0;
         void HandleRecvTcpPacket()
         {
+            //
+            if (curPacketSize > 400)
+            {
+                ResetKeepAliveTimeoutTimer();
+                totalBytes += curPacketSize;
+                _log.LogInformation($"Total byte: {totalBytes}");
+                return;
+            }
+            //
             ErrorRecv = true;
             //at least 16B MD5, 1B data
             if (curPacketSize > 16)
@@ -265,7 +287,7 @@ namespace UDPTCPcore
                         //decrypt RSA packet, get salt, check Token and then get AES-128
                         byte[] decrypted = rsa.Decrypt(Tcpbuff);
                         tokenLen = (decrypted.Length - TcpPacketStruct.SIZE_OF_MD5 - AESkeyLen) / 2;
-                        if (decrypted != null && tokenLen > 0)
+                        if (decrypted != null && tokenLen > 0 && CheckMD5NoDecrypt(decrypted, TcpPacketStruct.SIZE_OF_MD5, decrypted.Length - TcpPacketStruct.SIZE_OF_MD5, decrypted, 0))
                         {
                             //get first salt (note, need & 0x7F to make sure value < 128)
                             salt = new byte[tokenLen];
@@ -285,6 +307,9 @@ namespace UDPTCPcore
                                 //send back ID to ACK with client
                                 SendHandshakePackAsync(SendPackeTypeEnum.ACK);
                                 IsHandshaked = true;
+
+                                _log.LogInformation($"{Id} TLS-handshake successfull!");
+
                                 OnTLSConnectedNotify();
 
                                 ErrorRecv = false;
@@ -411,6 +436,8 @@ namespace UDPTCPcore
                     sendPubkeyBuff[sendPubkeyBuff.Length - 1] = tmp;
 
                     SendPacketAsync(sendPubkeyBuff, 0, sendPubkeyBuff.Length);
+                    Thread.Sleep(1000);
+                    int xx = 0;
                 }
                 else if (type == SendPackeTypeEnum.ACK)
                 {
