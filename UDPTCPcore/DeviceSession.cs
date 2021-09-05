@@ -123,7 +123,7 @@ namespace UDPTCPcore
                 curUserSend = null;
             }
         }
-        int missFrame = 0;
+        int missFrame = 0, countSend = 0;
         internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp, int headerMP3Len)
         {
             if (sendPack == null || (!IsHandshaked)) return;
@@ -153,13 +153,17 @@ namespace UDPTCPcore
 
                 if(encrypted != null)
                 {
-                    if(BytesSending == 0)
+                    countSend++;
+                    if (BytesSending == 0)
                     {
                         SendTLSPacket(sendPack, 0, sendPack.Length, false);
                     }
                     else
                     {
                         missFrame++;
+                    }
+                    if(countSend % 40 == 0)
+                    {
                         _log.LogInformation($"{Id} miss frame: {missFrame}");
                     }
                     lastSendTimestampe = sendTimestamp;
