@@ -68,13 +68,17 @@ namespace UDPTCPcore
                 //System.Buffer.BlockCopy(BitConverter.GetBytes(DateTimeOffset.Now.ToUnixTimeMilliseconds()), 0, ntpBuffer, 4, sizeof(long));
                 //SendAsync(endpoint, ntpBuffer, 0, 12);
             }
-            _log.LogInformation($"UDP packet len: {size}");
+            else
+            {
+                _log.LogInformation($"UDP packet len: {size}");
+            }
+            ReceiveAsync();
         }
 
         protected override void OnSent(EndPoint endpoint, long sent)
         {
             // Continue receive datagrams
-            ReceiveAsync();
+            //ReceiveAsync();
         }
 
         protected override void OnError(SocketError error)
