@@ -12,8 +12,8 @@ namespace UDPTCPcore
 {
     class TLSSession : TcpSession
     {
-        const int CONNECT_TIMEOUT = 1000000; //10s for TLS handshake
-        const int KEEP_ALIVE_TIMEOUT = 1200000; //120s for keep alive after handshake
+        const int CONNECT_TIMEOUT = 10000; //10s for TLS handshake
+        const int KEEP_ALIVE_TIMEOUT = 120000; //120s for keep alive after handshake
         internal bool IsHandshaked { get; private set; } //get successfull AES key
         public RSA rsa;
         System.Timers.Timer timeoutTimer;
