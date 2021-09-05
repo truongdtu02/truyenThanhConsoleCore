@@ -70,7 +70,8 @@ namespace UDPTCPcore
             }
             else
             {
-                _log.LogInformation($"UDP packet len: {size}");
+                //_log.LogInformation($"UDP packet len: {size}");
+                Console.Write("+");
             }
             ReceiveAsync();
         }
