@@ -68,6 +68,7 @@ namespace UDPTCPcore
                 //System.Buffer.BlockCopy(BitConverter.GetBytes(DateTimeOffset.Now.ToUnixTimeMilliseconds()), 0, ntpBuffer, 4, sizeof(long));
                 //SendAsync(endpoint, ntpBuffer, 0, 12);
             }
+            _log.LogInformation($"UDP packet len: {size}");
         }
 
         protected override void OnSent(EndPoint endpoint, long sent)
