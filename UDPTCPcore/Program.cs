@@ -32,11 +32,14 @@ namespace UDPTCPcore
             //AES.Run();
             //RSA rsa = new RSA(); rsa.Run();
             //byte[] test = new byte[0]; //still correct
-            DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
-            //deviceServer.Run();
-            deviceServer.Start();
+
             NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
             ntpServer.Start();
+
+            DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
+            deviceServer.Run();
+            //deviceServer.Start();
+
             while (true) { }
         }
 
