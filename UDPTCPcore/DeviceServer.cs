@@ -75,7 +75,7 @@ namespace UDPTCPcore
                 };
             }
 
-            const int NUM_OF_FRAME_SEND_PER_PACKET = 17;
+            const int NUM_OF_FRAME_SEND_PER_PACKET = 43;
             const int MAX_MAIN_DATA_BEGIN_BYTES = (int)1 << 9 ;
             const int FRAME_SIZE = 144;
             const int FRAME_TIME_MS = 24;
