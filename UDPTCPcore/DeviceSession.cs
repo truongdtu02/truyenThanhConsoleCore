@@ -20,21 +20,21 @@ namespace UDPTCPcore
 
         protected override void OnTLSConnectedNotify()
         {
-            DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
+            //DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
             //remove duplicate device
             //var dvIndx = deviceServer.listDeviceSession.FindLastIndex(dv => dv.token == token);
             //if (dvIndx != -1)
             //    deviceServer.listDeviceSession[dvIndx].bNeedRemove = true;
             //then add to server
-            deviceServer.listDeviceSession.Add(this);
+            //deviceServer.listDeviceSession.Add(this);
         }
 
         protected override void OnTLSDisConnectedNotify()
         {
-            DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
-            var dvIndx = deviceServer.listDeviceSession.FindLastIndex(dv => dv.token == token);
-            if (dvIndx != -1)
-                deviceServer.listDeviceSession[dvIndx].bNeedRemove = true;
+            //DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
+            //var dvIndx = deviceServer.listDeviceSession.FindLastIndex(dv => dv.token == token);
+            //if (dvIndx != -1)
+            //    deviceServer.listDeviceSession[dvIndx].bNeedRemove = true;
             //deviceServer.listDeviceSession.Remove(this);
             //_log.LogError($"{Id} disconnect!");
         }

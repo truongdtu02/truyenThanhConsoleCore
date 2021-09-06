@@ -286,8 +286,9 @@ namespace UDPTCPcore
                     {
                         //decrypt RSA packet, get salt, check Token and then get AES-128
                         byte[] decrypted = rsa.Decrypt(Tcpbuff);
-                        tokenLen = (decrypted.Length - TcpPacketStruct.SIZE_OF_MD5 - AESkeyLen) / 2;
-                        if (decrypted != null && tokenLen > 0 && CheckMD5NoDecrypt(decrypted, TcpPacketStruct.SIZE_OF_MD5, decrypted.Length - TcpPacketStruct.SIZE_OF_MD5, decrypted, 0))
+                        if(decrypted != null)
+                            tokenLen = (decrypted.Length - TcpPacketStruct.SIZE_OF_MD5 - AESkeyLen) / 2;
+                        if (tokenLen > 0 && CheckMD5NoDecrypt(decrypted, TcpPacketStruct.SIZE_OF_MD5, decrypted.Length - TcpPacketStruct.SIZE_OF_MD5, decrypted, 0))
                         {
                             //get first salt (note, need & 0x7F to make sure value < 128)
                             salt = new byte[tokenLen];
