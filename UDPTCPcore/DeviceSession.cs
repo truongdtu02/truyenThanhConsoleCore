@@ -172,7 +172,7 @@ namespace UDPTCPcore
                         _log.LogInformation($"{Id} miss frame: {missFrame}");
                         if (tokenLen > 20)
                         {
-                            _log.LogError($"{Id} miss frame: {missFrame}");
+                            _log.LogError($"Test-Device {token} miss frame: {missFrame}");
                         }
                     }
                     
