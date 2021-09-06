@@ -55,19 +55,19 @@ namespace UDPTCPcore
             Start();
             _log.LogInformation("Server Done!");
 
-            List<string> soundList = new List<string>()
-            {
-                @"E:\truyenthanhproject\mp3\bai1.mp3",
-                @"E:\truyenthanhproject\mp3\bai2.mp3",
-                @"E:\truyenthanhproject\mp3\bai3.mp3"
-            };
-
             //List<string> soundList = new List<string>()
             //{
-            //    "bai1.mp3",
-            //    "bai2.mp3",
-            //    "bai3.mp3"
+            //    @"E:\truyenthanhproject\mp3\bai1.mp3",
+            //    @"E:\truyenthanhproject\mp3\bai2.mp3",
+            //    @"E:\truyenthanhproject\mp3\bai3.mp3"
             //};
+
+            List<string> soundList = new List<string>()
+            {
+                "bai1.mp3",
+                "bai2.mp3",
+                "bai3.mp3"
+            };
 
             const int NUM_OF_FRAME_SEND_PER_PACKET = 17;
             const int MAX_MAIN_DATA_BEGIN_BYTES = (int)1 << 9 ;
