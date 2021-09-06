@@ -18,6 +18,8 @@ namespace UDPTCPcore
             _log = log;
         }
 
+        internal int TokenLen { get => tokenLen; }
+
         protected override void OnTLSConnectedNotify()
         {
             //DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
@@ -129,7 +131,7 @@ namespace UDPTCPcore
             }
         }
         int missFrame = 0, countSend = 0;
-        internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp, int headerMP3Len)
+        internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp, int headerMP3Len, bool IsForceSend)
         {
             if (sendPack == null || (!IsHandshaked)) return;
 
@@ -159,7 +161,7 @@ namespace UDPTCPcore
                 if(encrypted != null)
                 {
                     countSend++;
-                    if (BytesSending == 0)
+                    if (BytesSending == 0 || IsForceSend)
                     {
                         SendTLSPacket(sendPack, 0, sendPack.Length, false);
                     }
