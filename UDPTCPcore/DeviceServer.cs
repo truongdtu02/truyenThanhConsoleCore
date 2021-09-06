@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using MP3_ADU;
 using System.Diagnostics;
 using System.Threading;
+using System.Timers;
 
 namespace UDPTCPcore
 {
@@ -27,28 +28,48 @@ namespace UDPTCPcore
             _log.LogInformation($"TCP server port: {port}");
             listDeviceSession = new List<DeviceSession>();
         }
+
+        private void TimeoutTimerEvent(Object source, ElapsedEventArgs e)
+        {
+            int maxIndx = listDeviceSession.Count;
+            for(int i = maxIndx - 1; i >= 0; i--)
+            {
+                if(listDeviceSession[i].bNeedRemove)
+                {
+                    listDeviceSession.RemoveAt(i);
+                }
+            }
+        }
+
         internal void Run()
         {
+            // Create a timer to handle connect time-out
+            var timeoutTimer = new System.Timers.Timer(5000);
+            // Hook up the Elapsed event for the timer. 
+            timeoutTimer.Elapsed += TimeoutTimerEvent;
+            timeoutTimer.AutoReset = true;
+            timeoutTimer.Enabled = true;
+
             // Start the server
             _log.LogInformation("Server starting...");
             Start();
             _log.LogInformation("Server Done!");
 
-            //List<string> soundList = new List<string>()
-            //{
-            //    @"E:\truyenthanhproject\mp3\bai1.mp3",
-            //    @"E:\truyenthanhproject\mp3\bai2.mp3",
-            //    @"E:\truyenthanhproject\mp3\bai3.mp3"
-            //};
-
             List<string> soundList = new List<string>()
             {
-                "bai1.mp3",
-                "bai2.mp3",
-                "bai3.mp3"
+                @"E:\truyenthanhproject\mp3\bai1.mp3",
+                @"E:\truyenthanhproject\mp3\bai2.mp3",
+                @"E:\truyenthanhproject\mp3\bai3.mp3"
             };
 
-            const int NUM_OF_FRAME_SEND_PER_PACKET = 13;
+            //List<string> soundList = new List<string>()
+            //{
+            //    "bai1.mp3",
+            //    "bai2.mp3",
+            //    "bai3.mp3"
+            //};
+
+            const int NUM_OF_FRAME_SEND_PER_PACKET = 17;
             const int MAX_MAIN_DATA_BEGIN_BYTES = (int)1 << 9 ;
             const int FRAME_SIZE = 144;
             const int FRAME_TIME_MS = 24;
@@ -67,12 +88,11 @@ namespace UDPTCPcore
 
                         Stopwatch sendWatch = new Stopwatch();
                         sendWatch.Start();
-                        long sendTime = 0;
+                        int sendTime = 0;
                         UInt32 frameID = 0, oldFrameID = 0;
                         //read frame and send
                         while(true)
                         {
-
                             //get frame
                             int totalLen = 0;
                             byte[] tmp;
@@ -92,7 +112,6 @@ namespace UDPTCPcore
                                 mp3FrameList.Add(tmp);
                                 frameID++;
                             }
-
                             if(totalLen > 0)
                             {
                                 curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -110,12 +129,17 @@ namespace UDPTCPcore
                                 break;
                             }
                             oldFrameID = frameID;
-
-                            sendTime++;
+                            sendTime ++;
                             long offsetTime = sendTime * NUM_OF_FRAME_SEND_PER_PACKET * FRAME_TIME_MS - sendWatch.ElapsedMilliseconds;
+                            
                             if(offsetTime > 0)
                             {
                                 Thread.Sleep((int)offsetTime);
+                            }
+
+                            if (sendTime % 3 == 0)
+                            {
+                                _log.LogError($"Num of dev: {listDeviceSession.Count}");
                             }
 
                             //dipose

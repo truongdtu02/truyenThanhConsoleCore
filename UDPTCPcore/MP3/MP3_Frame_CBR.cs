@@ -341,9 +341,10 @@ namespace MP3_ADU
                 if(remainder != 0)
                 {
                     if (!MP3ReadOffset(startPointMDB, ADUframe, ADUframeOffset, remainder)) return null;
-                    remainder = 0;
                     startPointMDB += remainder + 4 + sideInfoSize; //144 + 13
                     ADUframeOffset += remainder; //13 + 1
+
+                    remainder = 0;
                 }
                 else
                 {

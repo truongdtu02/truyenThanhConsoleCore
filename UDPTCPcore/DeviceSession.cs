@@ -12,6 +12,7 @@ namespace UDPTCPcore
     {
         internal string DeviceName { get; private set; }
         private readonly ILogger<DeviceSession> _log;
+        internal bool bNeedRemove = false; 
         public DeviceSession(TcpServer server, ILogger<DeviceSession> log) : base(server, log) 
         {
             _log = log;
@@ -21,9 +22,9 @@ namespace UDPTCPcore
         {
             DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
             //remove duplicate device
-            var dvIndx = deviceServer.listDeviceSession.FindLastIndex(dv => dv.token == token);
-            if (dvIndx != -1)
-                deviceServer.listDeviceSession.RemoveAt(dvIndx);
+            //var dvIndx = deviceServer.listDeviceSession.FindLastIndex(dv => dv.token == token);
+            //if (dvIndx != -1)
+            //    deviceServer.listDeviceSession[dvIndx].bNeedRemove = true;
             //then add to server
             deviceServer.listDeviceSession.Add(this);
         }
@@ -31,7 +32,11 @@ namespace UDPTCPcore
         protected override void OnTLSDisConnectedNotify()
         {
             DeviceServer deviceServer = Program.host.Services.GetRequiredService<DeviceServer>();
-            deviceServer.listDeviceSession.Remove(this);
+            var dvIndx = deviceServer.listDeviceSession.FindLastIndex(dv => dv.token == token);
+            if (dvIndx != -1)
+                deviceServer.listDeviceSession[dvIndx].bNeedRemove = true;
+            //deviceServer.listDeviceSession.Remove(this);
+            //_log.LogError($"{Id} disconnect!");
         }
         
 
@@ -162,10 +167,15 @@ namespace UDPTCPcore
                     {
                         missFrame++;
                     }
-                    if(countSend % 40 == 0)
+                    if(countSend % 30 == 0)
                     {
                         _log.LogInformation($"{Id} miss frame: {missFrame}");
+                        if (tokenLen > 20)
+                        {
+                            _log.LogError($"{Id} miss frame: {missFrame}");
+                        }
                     }
+                    
                     lastSendTimestampe = sendTimestamp;
                 }
             }
