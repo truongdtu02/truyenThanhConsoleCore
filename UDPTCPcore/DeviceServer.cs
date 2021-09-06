@@ -134,7 +134,7 @@ namespace UDPTCPcore
                                 foreach (var session in Sessions.Values)
                                 {
                                     var dv = (DeviceSession)session;
-                                    dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, dv.TokenLen < 24);
+                                    dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
                                 }
                             }
                             else
