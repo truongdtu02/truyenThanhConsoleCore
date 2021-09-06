@@ -75,7 +75,7 @@ namespace UDPTCPcore
             const int FRAME_TIME_MS = 24;
 
             long curTime;
-
+            int timeOutSend = 0;
             while (true)
             {
                 //send 
@@ -142,11 +142,14 @@ namespace UDPTCPcore
                             if(offsetTime > 0)
                             {
                                 Thread.Sleep((int)offsetTime);
+                            } else if(offsetTime < 0)
+                            {
+                                timeOutSend ++;
                             }
 
                             if (sendTime % 30 == 0)
                             {
-                                _log.LogError($"Num of dev: {ConnectedSessions}");
+                                _log.LogError($"Num of dev: {ConnectedSessions}, send time-out: {timeOutSend}");
                             }
 
                             //dipose
