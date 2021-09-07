@@ -80,7 +80,7 @@ namespace UDPTCPcore
             const int FRAME_SIZE = 144;
             const int FRAME_TIME_MS = 24;
 
-            long curTime, startTime1, endTime1, startTime2, endTime2;
+            long curTime, startTime1, endTime1, startTime2, endTime2, middleTime1, middleTime2;
             int timeOutSend = 0;
             while (true)
             {
@@ -127,6 +127,11 @@ namespace UDPTCPcore
                             {
                                 curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                                 byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, curTime, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
+                                
+                                //debug
+                                middleTime1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                                middleTime2 = sendWatch.ElapsedMilliseconds;
+
 
                                 //send packet
                                 //foreach(var dv in listDeviceSession)
