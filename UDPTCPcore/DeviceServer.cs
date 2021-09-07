@@ -159,9 +159,11 @@ namespace UDPTCPcore
                                 Thread.Sleep((int)offsetTime);
                             } else if(offsetTime < 0)
                             {
-                                _log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
+                                //_log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
                                 timeOutSend++;
                             }
+
+                            _log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
 
                             if (sendTime % 30 == 0)
                             {
