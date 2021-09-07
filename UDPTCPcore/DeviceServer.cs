@@ -159,13 +159,13 @@ namespace UDPTCPcore
                                 Thread.Sleep((int)offsetTime);
                             } else if(offsetTime < 0)
                             {
-                                timeOutSend ++;
+                                _log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
+                                timeOutSend++;
                             }
 
                             if (sendTime % 30 == 0)
                             {
                                 _log.LogError($"Num of dev: {ConnectedSessions}, send time-out: {timeOutSend}");
-                                _log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
                             }
 
                             //dipose
