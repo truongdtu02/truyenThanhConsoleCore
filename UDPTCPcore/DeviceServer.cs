@@ -100,10 +100,6 @@ namespace UDPTCPcore
                         //read frame and send
                         while(true)
                         {
-                            //debug
-                            startTime1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                            startTime2 = sendWatch.ElapsedMilliseconds;
-
                             //get frame
                             int totalLen = 0;
                             byte[] tmp;
@@ -128,11 +124,6 @@ namespace UDPTCPcore
                                 curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                                 byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, curTime, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
                                 
-                                //debug
-                                middleTime1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                                middleTime2 = sendWatch.ElapsedMilliseconds;
-
-
                                 //send packet
                                 //foreach(var dv in listDeviceSession)
                                 //{
@@ -155,10 +146,6 @@ namespace UDPTCPcore
                             sendTime ++;
                             long offsetTime = sendTime * NUM_OF_FRAME_SEND_PER_PACKET * FRAME_TIME_MS - sendWatch.ElapsedMilliseconds;
 
-                            //debug
-                            endTime1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                            endTime2 = sendWatch.ElapsedMilliseconds;
-
                             if (offsetTime > 0)
                             {
                                 Thread.Sleep((int)offsetTime);
@@ -168,7 +155,7 @@ namespace UDPTCPcore
                                 timeOutSend++;
                             }
 
-                            _log.LogError($"Time1: {startTime1} - {middleTime1} - {endTime1} , Time2: {startTime2} - {middleTime2} - {endTime2}");
+                            //_log.LogError($"Time1: {startTime1} - {middleTime1} - {endTime1} , Time2: {startTime2} - {middleTime2} - {endTime2}");
 
                             if (sendTime % 30 == 0)
                             {
