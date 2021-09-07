@@ -161,7 +161,7 @@ namespace UDPTCPcore
                 if(encrypted != null)
                 {
                     countSend++;
-                    if (BytesSending == 0 || IsForceSend)
+                    if ((BytesPending + sendPack.Length) < OptionSendBufferSize || IsForceSend)
                     {
                         SendTLSPacket(sendPack, 0, sendPack.Length, false);
                     }

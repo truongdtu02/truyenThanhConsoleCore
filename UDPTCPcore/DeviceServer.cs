@@ -80,10 +80,11 @@ namespace UDPTCPcore
             const int FRAME_SIZE = 144;
             const int FRAME_TIME_MS = 24;
 
-            long curTime;
+            long curTime, startTime1, endTime1, startTime2, endTime2;
             int timeOutSend = 0;
             while (true)
             {
+                
                 //send 
                 foreach(var song in soundList)
                 {
@@ -99,6 +100,10 @@ namespace UDPTCPcore
                         //read frame and send
                         while(true)
                         {
+                            //debug
+                            startTime1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                            startTime2 = sendWatch.ElapsedMilliseconds;
+
                             //get frame
                             int totalLen = 0;
                             byte[] tmp;
@@ -144,8 +149,12 @@ namespace UDPTCPcore
                             oldFrameID = frameID;
                             sendTime ++;
                             long offsetTime = sendTime * NUM_OF_FRAME_SEND_PER_PACKET * FRAME_TIME_MS - sendWatch.ElapsedMilliseconds;
-                            
-                            if(offsetTime > 0)
+
+                            //debug
+                            endTime1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                            endTime2 = sendWatch.ElapsedMilliseconds;
+
+                            if (offsetTime > 0)
                             {
                                 Thread.Sleep((int)offsetTime);
                             } else if(offsetTime < 0)
@@ -156,6 +165,7 @@ namespace UDPTCPcore
                             if (sendTime % 30 == 0)
                             {
                                 _log.LogError($"Num of dev: {ConnectedSessions}, send time-out: {timeOutSend}");
+                                _log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
                             }
 
                             //dipose
