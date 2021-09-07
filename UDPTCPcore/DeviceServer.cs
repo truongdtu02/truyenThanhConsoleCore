@@ -168,7 +168,7 @@ namespace UDPTCPcore
                                 timeOutSend++;
                             }
 
-                            _log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
+                            _log.LogError($"Time1: {startTime1} - {middleTime1} - {endTime1} , Time2: {startTime2} - {middleTime2} - {endTime2}");
 
                             if (sendTime % 30 == 0)
                             {
