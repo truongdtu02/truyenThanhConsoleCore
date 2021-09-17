@@ -12,7 +12,7 @@ namespace UDPTCPcore
 {
     class TLSSession : TcpSession
     {
-        const int CONNECT_TIMEOUT = 10000; //10s for TLS handshake
+        const int CONNECT_TIMEOUT = 30000; //10s for TLS handshake
         const int KEEP_ALIVE_TIMEOUT = 120000; //120s for keep alive after handshake
         internal bool IsHandshaked { get; private set; } //get successfull AES key
         public RSA rsa;
@@ -114,7 +114,7 @@ namespace UDPTCPcore
             _log.LogInformation($"{Id} connected!");
 
             //Send pubkey
-            SendHandshakePackAsync(SendPackeTypeEnum.Pubkey);
+            //SendHandshakePackAsync(SendPackeTypeEnum.Pubkey);
         }
 
         protected override void OnDisconnected()
@@ -262,13 +262,13 @@ namespace UDPTCPcore
         void HandleRecvTcpPacket()
         {
             //
-            if (curPacketSize > 400)
-            {
-                ResetKeepAliveTimeoutTimer();
-                totalBytes += curPacketSize;
-                _log.LogInformation($"Total byte: {totalBytes}");
-                return;
-            }
+            //if (curPacketSize > 400)
+            //{
+            //    ResetKeepAliveTimeoutTimer();
+            //    totalBytes += curPacketSize;
+            //    _log.LogInformation($"Total byte: {totalBytes}");
+            //    return;
+            //}
             //
             ErrorRecv = true;
             //at least 16B MD5, 1B data
@@ -321,11 +321,23 @@ namespace UDPTCPcore
             } 
             else 
             {
-                if (IsHandshaked) ErrorRecv = false;
-                if(curPacketSize == 4) 
+                //if (IsHandshaked) ErrorRecv = false;
+                if(curPacketSize == 1) //keep-alive packet
+                {
+                    if (!IsHandshaked)
+                    {
+                        //send rsa pub - key
+                        SendHandshakePackAsync(SendPackeTypeEnum.Pubkey);
+                    }
+                    ErrorRecv = false;
+                }
+                
+                //debug
+                if(curPacketSize == 4 && IsHandshaked) 
                 {
                     int diff = BitConverter.ToInt32(Tcpbuff, 0);
                     _log.LogInformation($"Diff NTP: {diff}");
+                    ErrorRecv = false;
                 }
             } //keep alive, nothing can't do    
             

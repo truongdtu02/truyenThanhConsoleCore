@@ -168,16 +168,8 @@ namespace UDPTCPcore
                     else
                     {
                         missFrame++;
-                    }
-                    if(countSend % 30 == 0)
-                    {
                         _log.LogInformation($"{Id} miss frame: {missFrame}");
-                        if (tokenLen > 20)
-                        {
-                            _log.LogError($"Test-Device {token} miss frame: {missFrame}");
-                        }
                     }
-                    
                     lastSendTimestampe = sendTimestamp;
                 }
             }

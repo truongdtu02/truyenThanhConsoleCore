@@ -44,11 +44,11 @@ namespace UDPTCPcore
         internal void Run()
         {
             // Create a timer to handle connect time-out
-            var timeoutTimer = new System.Timers.Timer(5000);
-            // Hook up the Elapsed event for the timer. 
-            timeoutTimer.Elapsed += TimeoutTimerEvent;
-            timeoutTimer.AutoReset = true;
-            timeoutTimer.Enabled = true;
+            //var timeoutTimer = new System.Timers.Timer(5000);
+            //// Hook up the Elapsed event for the timer. 
+            //timeoutTimer.Elapsed += TimeoutTimerEvent;
+            //timeoutTimer.AutoReset = true;
+            //timeoutTimer.Enabled = true;
 
             // Start the server
             _log.LogInformation("Server starting...");
@@ -149,19 +149,7 @@ namespace UDPTCPcore
                             if (offsetTime > 0)
                             {
                                 Thread.Sleep((int)offsetTime);
-                            } else if(offsetTime < 0)
-                            {
-                                //_log.LogError($"Time1: {startTime1} - {endTime1} , Time2: {startTime2} - {endTime2}");
-                                timeOutSend++;
                             }
-
-                            //_log.LogError($"Time1: {startTime1} - {middleTime1} - {endTime1} , Time2: {startTime2} - {middleTime2} - {endTime2}");
-
-                            if (sendTime % 30 == 0)
-                            {
-                                _log.LogError($"Num of dev: {ConnectedSessions}, send time-out: {timeOutSend}");
-                            }
-
                             //dipose
                             mp3FrameList.Clear();
                         }
