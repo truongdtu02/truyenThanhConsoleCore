@@ -121,7 +121,7 @@ namespace UDPTCPcore
         {
             timeoutTimer.Close(); //release timer to make sure don't double Disconnect();
 
-            _log.LogInformation($"{Id} disconnected!");
+            _log.LogInformation($"{Id} {token} disconnected!");
 
             OnTLSDisConnectedNotify();
         }
