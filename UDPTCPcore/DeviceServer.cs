@@ -138,40 +138,40 @@ namespace UDPTCPcore
                                 foreach (var session in Sessions.Values)
                                 {
                                     var dv = (DeviceSession)session;
-                                    //dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
+                                    dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
 
                                     //debug
-                                    int ofsset = 'z' - 'a' + 1;
-                                    for(int i = 1; i < sendBuff.Length; i++)
-                                    {
-                                        if(i < 10)
-                                        {
-                                            sendBuff[i] = (byte)('A' + i % ofsset);
-                                        }
-                                        else if (i > (sendBuff.Length - 10))
-                                        {
-                                            sendBuff[i] = (byte)('A' + i % ofsset);
-                                        }
-                                        else
-                                        {
-                                            sendBuff[i] = (byte)('a' + i % ofsset);
-                                        }
-                                    }
+                                    //int ofsset = 'z' - 'a' + 1;
+                                    //for(int i = 1; i < sendBuff.Length; i++)
+                                    //{
+                                    //    if(i < 10)
+                                    //    {
+                                    //        sendBuff[i] = (byte)('A' + i % ofsset);
+                                    //    }
+                                    //    else if (i > (sendBuff.Length - 10))
+                                    //    {
+                                    //        sendBuff[i] = (byte)('A' + i % ofsset);
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        sendBuff[i] = (byte)('a' + i % ofsset);
+                                    //    }
+                                    //}
                                     //int len = sendBuff.Length; (BytesPending + sendPack.Length) < OptionSendBufferSize
-                                    if (dv.IsHandshaked)
-                                    {
-                                        if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
-                                        {
-                                            dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
-                                            sendBuff[0] = order;
-                                            order++;
-                                            dv.SendAsync(sendBuff);
-                                        }
-                                        else
-                                        {
-                                            _log.LogInformation($"{dv.Token} miss");
-                                        }
-                                    }
+                                    //if (dv.IsHandshaked)
+                                    //{
+                                    //    if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
+                                    //    {
+                                    //        dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
+                                    //        sendBuff[0] = order;
+                                    //        order++;
+                                    //        dv.SendAsync(sendBuff);
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        _log.LogInformation($"{dv.Token} miss");
+                                    //    }
+                                    //}
                                 }
                             }
                             else
