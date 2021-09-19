@@ -144,7 +144,18 @@ namespace UDPTCPcore
                                     int ofsset = 'z' - 'a' + 1;
                                     for(int i = 1; i < sendBuff.Length; i++)
                                     {
-                                        sendBuff[i] = (byte)('a' + i % ofsset);
+                                        if(i < 10)
+                                        {
+                                            sendBuff[i] = (byte)('A' + i % ofsset);
+                                        }
+                                        else if (i > (sendBuff.Length - 10))
+                                        {
+                                            sendBuff[i] = (byte)('A' + i % ofsset);
+                                        }
+                                        else
+                                        {
+                                            sendBuff[i] = (byte)('a' + i % ofsset);
+                                        }
                                     }
                                     //int len = sendBuff.Length; (BytesPending + sendPack.Length) < OptionSendBufferSize
                                     if (dv.IsHandshaked)
