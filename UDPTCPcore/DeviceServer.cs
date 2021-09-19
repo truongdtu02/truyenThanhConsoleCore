@@ -142,10 +142,13 @@ namespace UDPTCPcore
 
                                     //debug
                                     //int len = sendBuff.Length;
-                                    dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
-                                    sendBuff[0] = order;
-                                    order++;
-                                    dv.SendAsync(sendBuff);
+                                    if (dv.IsHandshaked)
+                                    {
+                                        dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
+                                        sendBuff[0] = order;
+                                        order++;
+                                        dv.SendAsync(sendBuff);
+                                    }
                                 }
                             }
                             else
