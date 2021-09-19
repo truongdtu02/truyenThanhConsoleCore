@@ -21,8 +21,6 @@ namespace UDPTCPcore
 
         static void Main(string[] args)
         {
-            
-
             //MD5.MD5Hash("hello, anh dep zai!!!");
             //RSA rsa = new RSA(); rsa.Run();
             StartUp();

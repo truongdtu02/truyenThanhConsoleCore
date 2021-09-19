@@ -55,6 +55,9 @@ namespace UDPTCPcore
             Start();
             _log.LogInformation("Server Done!");
 
+            //debug
+            byte order = 0;
+
             List<string> soundList;
             if (OperatingSystem.IsWindows())
             {
@@ -135,7 +138,14 @@ namespace UDPTCPcore
                                 foreach (var session in Sessions.Values)
                                 {
                                     var dv = (DeviceSession)session;
-                                    dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
+                                    //dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
+
+                                    //debug
+                                    //int len = sendBuff.Length;
+                                    dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
+                                    sendBuff[0] = order;
+                                    order++;
+                                    dv.SendAsync(sendBuff);
                                 }
                             }
                             else
