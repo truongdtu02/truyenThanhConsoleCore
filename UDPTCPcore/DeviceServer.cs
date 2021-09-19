@@ -56,7 +56,7 @@ namespace UDPTCPcore
             _log.LogInformation("Server Done!");
 
             //debug
-            byte order = 0;
+            int order = 0;
 
             List<string> soundList;
             if (OperatingSystem.IsWindows())
@@ -138,7 +138,7 @@ namespace UDPTCPcore
                                 foreach (var session in Sessions.Values)
                                 {
                                     var dv = (DeviceSession)session;
-                                    dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
+                                    //dv.SendMP3PackAssync(sendBuff, 1, "bom", curTime, MP3PacketHeader.HEADER_NOENCRYPT_SIZE, false);
 
                                     //debug
                                     //int ofsset = 'z' - 'a' + 1;
@@ -158,20 +158,22 @@ namespace UDPTCPcore
                                     //    }
                                     //}
                                     //int len = sendBuff.Length; (BytesPending + sendPack.Length) < OptionSendBufferSize
-                                    //if (dv.IsHandshaked)
-                                    //{
-                                    //    if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
-                                    //    {
-                                    //        dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
-                                    //        sendBuff[0] = order;
-                                    //        order++;
-                                    //        dv.SendAsync(sendBuff);
-                                    //    }
-                                    //    else
-                                    //    {
-                                    //        _log.LogInformation($"{dv.Token} miss");
-                                    //    }
-                                    //}
+                                    if (dv.IsHandshaked)
+                                    {
+                                        if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
+                                        {
+                                            dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
+                                            System.Buffer.BlockCopy(BitConverter.GetBytes(order), 0, sendBuff, 0, 4);
+                                            order++;
+                                            dv.SendAsync(sendBuff);
+                                            int tmpL = sendBuff.Length;
+                                            _log.LogInformation($"MP3 {order}: {sendBuff[4]} {sendBuff[5]} {sendBuff[tmpL - 2]} {sendBuff[tmpL - 1]}");
+                                        }
+                                        else
+                                        {
+                                            _log.LogInformation($"{dv.Token} miss");
+                                        }
+                                    }
                                 }
                             }
                             else
