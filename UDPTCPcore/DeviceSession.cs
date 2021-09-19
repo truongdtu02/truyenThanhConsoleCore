@@ -19,6 +19,7 @@ namespace UDPTCPcore
         }
 
         internal int TokenLen { get => tokenLen; }
+        internal string Token { get => token; }
 
         protected override void OnTLSConnectedNotify()
         {

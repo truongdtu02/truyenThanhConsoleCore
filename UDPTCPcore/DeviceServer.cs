@@ -147,12 +147,19 @@ namespace UDPTCPcore
                                         sendBuff[i] = (byte)('a' + i % ofsset);
                                     }
                                     //int len = sendBuff.Length; (BytesPending + sendPack.Length) < OptionSendBufferSize
-                                    if (dv.IsHandshaked && (dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
+                                    if (dv.IsHandshaked)
                                     {
-                                        dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
-                                        sendBuff[0] = order;
-                                        order++;
-                                        dv.SendAsync(sendBuff);
+                                        if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
+                                        {
+                                            dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
+                                            sendBuff[0] = order;
+                                            order++;
+                                            dv.SendAsync(sendBuff);
+                                        }
+                                        else
+                                        {
+                                            _log.LogInformation($"{dv.Token} miss");
+                                        }
                                     }
                                 }
                             }
