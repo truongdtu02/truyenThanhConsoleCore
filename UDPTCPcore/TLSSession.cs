@@ -374,15 +374,18 @@ namespace UDPTCPcore
         }
 
 
-        internal void SendTLSPacket(byte[] data, int offset, int len, bool IsHaveEncrypt)
+        internal bool SendTLSPacket(byte[] data, bool IsHaveEncrypt)
         {
             if(IsHandshaked)
             {
-                if(IsHaveEncrypt)
-                    SendPacketAsync(data, offset, len);
+                if (IsHaveEncrypt)
+                {
+                    return true;
+                }
                 else
-                    SendPacketAsyncNoEncrypt(data, offset, len);
+                    return SendPacketAsyncNoEncrypt(data);
             }
+            return false;
         }
 
         //get length and add MD5 (then encrypt) to packet before send
@@ -414,21 +417,24 @@ namespace UDPTCPcore
         }
 
         //non-encrypt payload, but stil encrypt md5
-        void SendPacketAsyncNoEncrypt(byte[] data, int offset, int len)
+        bool SendPacketAsyncNoEncrypt(byte[] data)
         {
             //check data array
-            if ((data.Length - offset) < len) return;
 
-            if (AESkey != null)
+            if (data != null && AESkey != null && data.Length > 20) // 4B len, 16B md5
             {
-                byte[] md5Checksum = MD5.MD5Hash(data, offset, len);
-                md5Checksum = AES.AES_Encrypt(md5Checksum, 0, md5Checksum.Length, AESkey); //encrypt
+                byte[] md5Checksum = MD5.MD5Hash(data, 20, data.Length - 20);
+                md5Checksum = AES.AES_Encrypt_Overwrite(md5Checksum, 0, 16, AESkey); //encrypt
+                //copy md5
+                System.Buffer.BlockCopy(md5Checksum, 0, data, 4, 16);
+
+                //copy len
+                System.Buffer.BlockCopy(BitConverter.GetBytes(data.Length - 4), 0, data, 0, 4);
 
                 //send header then payload
-                SendAsync(BitConverter.GetBytes(len + TcpPacketStruct.SIZE_OF_MD5));
-                SendAsync(md5Checksum);
-                SendAsync(data, offset, len);
+                return SendAsync(data);
             }
+            return false;
         }
 
         //1 2 3 4 5

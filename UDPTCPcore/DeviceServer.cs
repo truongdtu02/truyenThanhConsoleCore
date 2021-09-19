@@ -83,7 +83,7 @@ namespace UDPTCPcore
             const int FRAME_SIZE = 144;
             const int FRAME_TIME_MS = 24;
 
-            long curTime, startTime1, endTime1, startTime2, endTime2, middleTime1, middleTime2;
+            long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             int timeOutSend = 0;
             while (true)
             {
@@ -124,8 +124,8 @@ namespace UDPTCPcore
                             }
                             if(totalLen > 0)
                             {
-                                curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                                byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, curTime, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
+                                long frameTimestamp = sendTime * (long)mp3Read.TimePerFrame_ms + startTime;
+                                byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, frameTimestamp, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
                                 
                                 //send packet
                                 //foreach(var dv in listDeviceSession)
@@ -160,19 +160,20 @@ namespace UDPTCPcore
                                     //int len = sendBuff.Length; (BytesPending + sendPack.Length) < OptionSendBufferSize
                                     if (dv.IsHandshaked)
                                     {
-                                        if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
-                                        {
-                                            dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
-                                            System.Buffer.BlockCopy(BitConverter.GetBytes(order), 0, sendBuff, 0, 4);
-                                            order++;
-                                            dv.SendAsync(sendBuff);
-                                            int tmpL = sendBuff.Length;
-                                            _log.LogInformation($"MP3 {order}: {sendBuff[4]} {sendBuff[5]} {sendBuff[tmpL - 2]} {sendBuff[tmpL - 1]}");
-                                        }
-                                        else
-                                        {
-                                            _log.LogInformation($"{dv.Token} miss");
-                                        }
+                                        //if ((dv.BytesPending + sendBuff.Length) < dv.OptionSendBufferSize)
+                                        //{
+                                        //    dv.SendAsync(BitConverter.GetBytes(sendBuff.Length));
+                                        //    System.Buffer.BlockCopy(BitConverter.GetBytes(order), 0, sendBuff, 0, 4);
+                                        //    order++;
+                                        //    dv.SendAsync(sendBuff);
+                                        //    int tmpL = sendBuff.Length;
+                                        //    _log.LogInformation($"MP3 {order}: {sendBuff[4]} {sendBuff[5]} {sendBuff[tmpL - 2]} {sendBuff[tmpL - 1]}");
+                                        //}
+                                        //else
+                                        //{
+                                        //    _log.LogInformation($"{dv.Token} miss");
+                                        //}
+                                        dv.SendMP3PackAssync(sendBuff, 1, "bom", frameTimestamp);
                                     }
                                 }
                             }
@@ -191,6 +192,7 @@ namespace UDPTCPcore
                             //dipose
                             mp3FrameList.Clear();
                         }
+                        sendWatch.Stop();
                     }
                 }
             }

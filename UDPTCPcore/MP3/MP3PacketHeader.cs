@@ -8,42 +8,43 @@ namespace MP3_ADU
     {
         const int AESkeyLen = 16;
 
+        //static int len;
+        static int len_offset = 0;
+
+        //16B MD5
+        static int md5_offset =                 4;
+
         //static byte type;
-        static int type_offset = 0;
+        static int type_offset =                4 + 16;
 
         //static UInt32 session;
-        static int session_offset =             1;
-
-        //11B padding
-        static int padding_offset =             1 + 4;
+        static int session_offset =             4 + 16 + 1;
 
         //16B AES_key-128
-        static int aeskey_offset =              1 + 4 + 11;
+        static int aeskey_offset =              4 + 16 + 1 + 4;
 
         //static byte volume;
-        static int volume_offset =              1 + 4 + 11 + 16;
+        static int volume_offset =              4 + 16 + 1 + 4 + 16;
 
         //static long timestamp;
-        static int timestamp_offset =           1 + 4 + 11 + 16 + 1;
+        static int timestamp_offset =           4 + 16 + 1 + 4 + 16 + 1;
 
         //static UInt32 frameID;
-        static int frameID_offset =             1 + 4 + 11 + 16 + 1 + 8;
+        static int frameID_offset =             4 + 16 + 1 + 4 + 16 + 1 + 8;
 
         //static byte numOfFrame; //1B
-        static int numOfFrame_offset =          1 + 4 + 11 + 16 + 1 + 8 + 4;
+        static int numOfFrame_offset =          4 + 16 + 1 + 4 + 16 + 1 + 8 + 4;
 
         //static UInt16 sizeOfFirstFrame; //2B
-        static int sizeOfFirstFrame_offset =    1 + 4 + 11 + 16 + 1 + 8 + 4 + 1;
+        static int sizeOfFirstFrame_offset =    4 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1;
 
         //static UInt16 frameSize; //2B
-        static int frameSize_offset =           1 + 4 + 11 + 16 + 1 + 8 + 4 + 1 + 2;
+        static int frameSize_offset =           4 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2;
 
         //static byte timePerFrame; //1B (ms)
-        static int timePerFrame_offset =        1 + 4 + 11 + 16 + 1 + 8 + 4 + 1 + 2 + 2;
+        static int timePerFrame_offset =        4 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2 + 2;
 
-        const int HEADER_SIZE =                 1 + 4 + 11 + 16 + 1 + 8 + 4 + 1 + 2 + 2 + 1;
-
-        internal const int HEADER_NOENCRYPT_SIZE = 1 + 4 + 11 + 16;
+        const int HEADER_SIZE =                 4 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2 + 2 + 1;
 
         public static byte[] Packet(List<byte[]> mp3FrameList, byte _volume, long _timestamp, UInt32 _frameId,
             UInt16 _frameSize, byte _timePerFrame, int _totalLen)
@@ -52,11 +53,8 @@ namespace MP3_ADU
             
             byte[] buff = new byte[_totalLen + HEADER_SIZE];
 
-            //random padding
-            Random rd = new Random();
-            for (int i = padding_offset; i < aeskey_offset; i++) buff[i] = (byte)rd.Next();
-
             //create AES_key
+            Random rd = new Random();
             byte[] AESkey = new byte[AESkeyLen];
             rd.NextBytes(AESkey);
             //copy aes key

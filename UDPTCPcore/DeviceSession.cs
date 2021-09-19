@@ -5,6 +5,7 @@ using Security;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Net.Sockets;
+using MP3_ADU;
 
 namespace UDPTCPcore
 {
@@ -132,7 +133,7 @@ namespace UDPTCPcore
             }
         }
         int missFrame = 0, countSend = 0;
-        internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp, int headerMP3Len, bool IsForceSend)
+        internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp)
         {
             if (sendPack == null || (!IsHandshaked)) return;
 
@@ -152,24 +153,26 @@ namespace UDPTCPcore
 
             if (priority == curSendMp3Priority)
             {
+                if (sendPack.Length < 52) return;
                 //copy type
-                sendPack[0] = (byte)SendTLSPackeTypeEnum.PacketMP3;
+                sendPack[20] = (byte)SendTLSPackeTypeEnum.PacketMP3;
                 //copy session
-                System.Buffer.BlockCopy(BitConverter.GetBytes(curSession), 0, sendPack, 1, sizeof(UInt32));
+                System.Buffer.BlockCopy(BitConverter.GetBytes(curSession), 0, sendPack, 21, 4);
 
-                byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, 0, headerMP3Len, AESkey);
+                byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, 4+16, 32, AESkey);
 
                 if(encrypted != null)
                 {
-                    countSend++;
-                    if ((BytesPending + sendPack.Length) < OptionSendBufferSize || IsForceSend)
+                    bool sendFail = true;
+                    if ((BytesPending + sendPack.Length) < OptionSendBufferSize)
                     {
-                        SendTLSPacket(sendPack, 0, sendPack.Length, false);
+                        if(SendTLSPacket(sendPack, false)) sendFail = false;
                     }
-                    else
+
+                    if(sendFail)
                     {
                         missFrame++;
-                        _log.LogInformation($"{Id} miss frame: {missFrame}");
+                        _log.LogInformation($"{Id} {token} miss frame: {missFrame}");
                     }
                     lastSendTimestampe = sendTimestamp;
                 }
