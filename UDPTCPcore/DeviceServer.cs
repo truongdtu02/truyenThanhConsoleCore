@@ -29,34 +29,32 @@ namespace UDPTCPcore
             //listDeviceSession = new List<DeviceSession>();
         }
 
-        private void TimeoutTimerEvent(Object source, ElapsedEventArgs e)
+        void SendTimerEvent(Object source, ElapsedEventArgs e, CountdownEvent _countdown)
         {
-            //int maxIndx = listDeviceSession.Count;
-            //for(int i = maxIndx - 1; i >= 0; i--)
-            //{
-            //    if(listDeviceSession[i].bNeedRemove)
-            //    {
-            //        listDeviceSession.RemoveAt(i);
-            //    }
-            //}
+            if(_countdown.CurrentCount != 0)
+            {
+                _countdown.Signal();
+            }
+        }
+
+        void InitiliazeSendTimer(System.Timers.Timer sendTimer, CountdownEvent _countdown, double interval)
+        {
+            // Create a timer to handle connect time-out
+            if(sendTimer == null)
+                sendTimer = new System.Timers.Timer(interval);
+
+            // Hook up the Elapsed event for the timer. 
+            sendTimer.Elapsed += (sender, e) => SendTimerEvent(sender, e, _countdown);
+            sendTimer.AutoReset = true;
+            sendTimer.Enabled = true;
         }
 
         internal void Run()
         {
-            // Create a timer to handle connect time-out
-            //var timeoutTimer = new System.Timers.Timer(5000);
-            //// Hook up the Elapsed event for the timer. 
-            //timeoutTimer.Elapsed += TimeoutTimerEvent;
-            //timeoutTimer.AutoReset = true;
-            //timeoutTimer.Enabled = true;
-
             // Start the server
             _log.LogInformation("Server starting...");
             Start();
             _log.LogInformation("Server Done!");
-
-            //debug
-            int order = 0;
 
             List<string> soundList;
             if (OperatingSystem.IsWindows())
@@ -79,26 +77,27 @@ namespace UDPTCPcore
             }
 
             const int NUM_OF_FRAME_SEND_PER_PACKET = 43;
-            const int MAX_MAIN_DATA_BEGIN_BYTES = (int)1 << 9 ;
-            const int FRAME_SIZE = 144;
-            const int FRAME_TIME_MS = 24;
 
-            long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            int timeOutSend = 0;
             while (true)
             {
-                
                 //send 
                 foreach(var song in soundList)
                 {
-                    using(FileStream mp3Song = new FileStream(song, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    using (FileStream mp3Song = new FileStream(song, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         MP3_Frame_CBR mp3Read = new MP3_Frame_CBR(mp3Song);
                         if (!mp3Read.CheckValidMP3(2, 48, 24000)) continue;
 
-                        Stopwatch sendWatch = new Stopwatch();
-                        sendWatch.Start();
-                        int sendTime = 0;
+                        //Stopwatch sendWatch = new Stopwatch();
+                        //sendWatch.Start();
+                        CountdownEvent _countdown = new CountdownEvent(1);
+                        double intervalSend = NUM_OF_FRAME_SEND_PER_PACKET * mp3Read.TimePerFrame_ms;
+                        int _countdownTimeout = 2 * (int)intervalSend;
+                        System.Timers.Timer sendTimer = new System.Timers.Timer(intervalSend);
+                        InitiliazeSendTimer(sendTimer, _countdown, intervalSend);
+
+                        int sendTime = 1; //start from 1 ~ client play delay NUM_OF_FRAME_SEND_PER_PACKET frames
                         UInt32 frameID = 0, oldFrameID = 0;
                         //read frame and send
                         while(true)
@@ -124,7 +123,7 @@ namespace UDPTCPcore
                             }
                             if(totalLen > 0)
                             {
-                                long frameTimestamp = sendTime * (long)mp3Read.TimePerFrame_ms + startTime;
+                                long frameTimestamp = sendTime * (long)intervalSend + startTime;
                                 byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, frameTimestamp, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
                                 
                                 //send packet
@@ -182,17 +181,18 @@ namespace UDPTCPcore
                                 break;
                             }
                             oldFrameID = frameID;
-                            sendTime ++;
-                            long offsetTime = sendTime * NUM_OF_FRAME_SEND_PER_PACKET * FRAME_TIME_MS - sendWatch.ElapsedMilliseconds;
-
-                            if (offsetTime > 0)
-                            {
-                                Thread.Sleep((int)offsetTime);
-                            }
                             //dipose
                             mp3FrameList.Clear();
+                            bool res = _countdown.Wait(_countdownTimeout); //wait after interval
+                            if(res) _countdown.Reset();
+                            
+                            _log.LogInformation($"Offset time: {DateTimeOffset.Now.ToUnixTimeMilliseconds() - (sendTime * (long)intervalSend + startTime)} {_countdown.CurrentCount} {res}");
+                            sendTime ++;
                         }
-                        sendWatch.Stop();
+                        sendTimer.Close();
+                        _countdown.Dispose();
+
+                        Thread.Sleep(500); //gap between songs
                     }
                 }
             }
