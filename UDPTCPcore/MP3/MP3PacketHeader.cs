@@ -90,7 +90,7 @@ namespace MP3_ADU
             }
 
             //encrypt with above key, from volume
-            //AES.AES_Encrypt_Overwrite_Nopadding(buff, volume_offset, buff.Length - volume_offset, AESkey);
+            AES.AES_Encrypt_Overwrite_Nopadding(buff, volume_offset, buff.Length - volume_offset, AESkey);
 
             return buff;
         }
