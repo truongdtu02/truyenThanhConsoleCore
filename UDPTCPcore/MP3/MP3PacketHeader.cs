@@ -89,6 +89,12 @@ namespace MP3_ADU
                 offsetBuff += fr.Length;
             }
 
+            //debug add a,b,c,d,e
+            for(int i = 1; i < 17; i++)
+            {
+                buff[buff.Length - i] = (byte)('z' - i);
+            }
+
             //encrypt with above key, from volume
             AES.AES_Encrypt_Overwrite_Nopadding(buff, volume_offset, buff.Length - volume_offset, AESkey);
 
