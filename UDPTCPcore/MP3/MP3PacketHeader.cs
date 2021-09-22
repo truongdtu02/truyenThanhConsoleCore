@@ -50,8 +50,12 @@ namespace MP3_ADU
             UInt16 _frameSize, byte _timePerFrame, int _totalLen)
         {
             if (mp3FrameList.Count > 255) return null;
-            
-            byte[] buff = new byte[_totalLen + HEADER_SIZE];
+
+            //byte[] buff = new byte[_totalLen + HEADER_SIZE];
+
+            //debug
+           byte[] buff = new byte[6400]; //fixed size of packet 6400B is max case
+
 
             //create AES_key
             Random rd = new Random();
