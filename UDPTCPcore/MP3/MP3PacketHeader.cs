@@ -54,7 +54,7 @@ namespace MP3_ADU
             //byte[] buff = new byte[_totalLen + HEADER_SIZE];
 
             //debug
-           byte[] buff = new byte[6400]; //fixed size of packet 6400B is max case
+           byte[] buff = new byte[1020]; //fixed size of packet 6400B is max case 43 packet, 1020-5
 
 
             //create AES_key

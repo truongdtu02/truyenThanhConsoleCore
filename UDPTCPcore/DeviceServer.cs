@@ -76,7 +76,7 @@ namespace UDPTCPcore
                 };
             }
 
-            const int NUM_OF_FRAME_SEND_PER_PACKET = 43;
+            const int NUM_OF_FRAME_SEND_PER_PACKET = 5;
 
             while (true)
             {
