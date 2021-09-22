@@ -184,10 +184,12 @@ namespace UDPTCPcore
                             //dipose
                             mp3FrameList.Clear();
                             bool res = _countdown.Wait(_countdownTimeout); //wait after interval
-                            if(res) _countdown.Reset();
-                            long offsetInterval = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (sendTime * (long)intervalSend + startTime);
-                            if(offsetInterval > 100 || _countdown.CurrentCount != 1 || !res)
-                                _log.LogInformation($"Offset time: {offsetInterval} {_countdown.CurrentCount} {res}");
+                            if (res) _countdown.Reset();
+
+                            //debug
+                            //long offsetInterval = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (sendTime * (long)intervalSend + startTime);
+                            //if(offsetInterval > 100 || _countdown.CurrentCount != 1 || !res)
+                            //    _log.LogInformation($"Offset time: {offsetInterval} {_countdown.CurrentCount} {res}");
                             sendTime ++;
                         }
                         sendTimer.Close();
