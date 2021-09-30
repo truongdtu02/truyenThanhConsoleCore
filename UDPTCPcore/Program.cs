@@ -36,7 +36,7 @@ namespace UDPTCPcore
 
             DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
             deviceServer.Run();
-            //deviceServer.Start();
+            deviceServer.Start();
 
             while (true) { }
         }
