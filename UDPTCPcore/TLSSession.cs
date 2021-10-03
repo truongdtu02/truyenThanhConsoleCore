@@ -477,9 +477,16 @@ namespace UDPTCPcore
                     //send back salt
                     if(salt != null)
                     {
-                        int lenTmp;
-                        if (salt.Length < 16) lenTmp = 16; //make sure len of payload (TCP packet >= 16)
-                        else lenTmp = salt.Length;
+                        int lenTmp = salt.Length % AES.AES_BLOCK_LEN;
+                        //make sure len of payload (TCP packet multiple of AES_BLOCK_LEN)
+                        if(lenTmp != 0)
+                        {
+                            lenTmp = salt.Length + AES.AES_BLOCK_LEN - lenTmp;
+                        }
+                        else
+                        {
+                            lenTmp = salt.Length;
+                        }
 
                         byte[] new_salt = new byte[lenTmp + TcpPacketStruct.HEADER_LEN];
                         System.Buffer.BlockCopy(salt, 0, new_salt, TcpPacketStruct.POS_OF_PAYLOAD, salt.Length);
