@@ -7,6 +7,7 @@ namespace Security
 {
     class AES
     {
+        public const int AES_BLOCK_LEN = 16;
         // rconBox //10byte
         static byte[] rcon =
         {

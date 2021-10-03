@@ -21,6 +21,8 @@ namespace UDPTCPcore
 
         static void Main(string[] args)
         {
+            //test
+
             //MD5.MD5Hash("hello, anh dep zai!!!");
             //RSA rsa = new RSA(); rsa.Run();
             StartUp();
@@ -32,7 +34,7 @@ namespace UDPTCPcore
             //byte[] test = new byte[0]; //still correct
 
             NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
-            ntpServer.Start();
+            //ntpServer.Start();
 
             DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
             deviceServer.Run();

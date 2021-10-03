@@ -47,7 +47,7 @@ namespace UDPTCPcore
         // 1, 2, 3, 4
         internal enum RecvPackeTypeEnum { Status, PacketAudio};
         bool ErrorRecv = false;
-        protected override bool HandleTLSPacket(byte[] data, int offset, int len)
+        protected override bool HandleTLSPacket()
         {
             return true;
             //int packetType = (int)Tcpbuff[POS_OF_BYTE_TYPE];
@@ -153,13 +153,13 @@ namespace UDPTCPcore
 
             if (priority == curSendMp3Priority)
             {
-                if (sendPack.Length < 52) return;
+                if (sendPack.Length < MP3PacketHeader.HEADER_SIZE) return;
                 //copy type
-                sendPack[20] = (byte)SendTLSPackeTypeEnum.PacketMP3;
+                sendPack[MP3PacketHeader.TYPE_POS] = (byte)SendTLSPackeTypeEnum.PacketMP3;
                 //copy session
-                System.Buffer.BlockCopy(BitConverter.GetBytes(curSession), 0, sendPack, 21, 4);
+                System.Buffer.BlockCopy(BitConverter.GetBytes(curSession), 0, sendPack, MP3PacketHeader.SESSION_POS, MP3PacketHeader.SESSION_LEN);
 
-                byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, 4+16, 32, AESkey);
+                byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, MP3PacketHeader.TYPE_POS, 32, AESkey); //encrypt type, session and aeskey
 
                 if(encrypted != null)
                 {

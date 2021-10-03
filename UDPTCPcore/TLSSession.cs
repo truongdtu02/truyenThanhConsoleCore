@@ -12,8 +12,9 @@ namespace UDPTCPcore
 {
     class TLSSession : TcpSession
     {
-        const int CONNECT_TIMEOUT = 30000; //10s for TLS handshake
-        const int KEEP_ALIVE_TIMEOUT = 120000; //120s for keep alive after handshake
+        //debug
+        const int CONNECT_TIMEOUT = 3000000; //10s for TLS handshake
+        const int KEEP_ALIVE_TIMEOUT = 12000000; //120s for keep alive after handshake
         internal bool IsHandshaked { get; private set; } //get successfull AES key
         public RSA rsa;
         System.Timers.Timer timeoutTimer;
@@ -28,15 +29,17 @@ namespace UDPTCPcore
         /* Note: this structure is suitable with received packet, when we don't get length file (4B) to Tcpbuff
          * So be carefully use this with send packet
          */
-        struct TcpPacketStruct
+        protected struct TcpPacketStruct
         {
-            public const int SIZE_OF_LEN = 4; //4B len of packet, //16B MD5
-            public const int POS_OF_MD5 = 0; //right after len filed
+            public const int POS_OF_LEN = 0;
+            public const int SIZE_OF_LEN = 2; //2B len of packet, //16B MD5
+            public const int POS_OF_MD5 = 2; //right after len filed
             public const int SIZE_OF_MD5 = 16;
-            public const int POS_OF_PAYLOAD = 16; //position of payload of packet
+            public const int POS_OF_PAYLOAD = 18; //position of payload of packet
 
             public const int HEADER_LEN = SIZE_OF_LEN + SIZE_OF_MD5;
         }
+
         byte[] headerBuff = new byte[TcpPacketStruct.SIZE_OF_LEN];
         byte[] Tcpbuff;
         int TcpbuffOffset = 0;
@@ -48,7 +51,7 @@ namespace UDPTCPcore
 
         //** protected properties
         protected int tokenLen = 24;
-        protected int TCP_BUFF_LEN_MAX = 30000;
+        protected int TCP_BUFF_LEN_MAX = 10000;
 
         //** virtual methods, need to override
         //derived can use to do something when client TLS handshake is successful, like add to list
@@ -63,8 +66,8 @@ namespace UDPTCPcore
 
         }
 
-        //handle TLS packet (after TLS handshake) at derived class, return flase if packet has something wrong
-        protected virtual bool HandleTLSPacket(byte[] data, int offset, int len)
+        //handle TLS packet (after TLS handshake) at derived class, return false if packet has something wrong
+        protected virtual bool HandleTLSPacket()
         {
             return true;
         }
@@ -78,7 +81,6 @@ namespace UDPTCPcore
         public TLSSession(TcpServer server, ILogger<TLSSession> log) : base(server)
         {
             ConnectedTime = 0;
-
             IsHandshaked = false;
             rsa = new RSA();
             _log = log;
@@ -96,7 +98,7 @@ namespace UDPTCPcore
             timeoutTimer.Enabled = true;
         }
 
-        //reset when recv TLS packet
+        //reset when recv TLS or keep-alive packet
         void ResetKeepAliveTimeoutTimer()
         {
             timeoutTimer.Interval = KEEP_ALIVE_TIMEOUT;
@@ -126,7 +128,7 @@ namespace UDPTCPcore
             OnTLSDisConnectedNotify();
         }
 
-        //first we wil store length filed (4B) to read len of packet
+        //first we wil store length field (4B) to read len of packet
         public void AnalyzeRecvTcpPacket(byte[] recvData, int offset, int length)
         {
             while (length > 0)
@@ -147,22 +149,21 @@ namespace UDPTCPcore
                         //copy just enough
                         int tmpOffset = TcpPacketStruct.SIZE_OF_LEN - TcpbuffOffset;
                         System.Buffer.BlockCopy(recvData, offset, headerBuff, TcpbuffOffset, tmpOffset);
-                        TcpbuffOffset = 0; //reset to 0 to copy payload
+                        TcpbuffOffset = TcpPacketStruct.SIZE_OF_LEN;
                         length -= tmpOffset;
                         offset += tmpOffset;
                         bIsPending = true;
 
-                        remainData = BitConverter.ToInt32(headerBuff, 0);
+                        remainData = (int)BitConverter.ToUInt16(headerBuff, 0); //not necessary & 0x0000FFFF;
                         curPacketSize = remainData;
 
-                        Tcpbuff = new byte[curPacketSize];
+                        Tcpbuff = new byte[curPacketSize + TcpPacketStruct.SIZE_OF_LEN];
 
                         //not enough mem, so just ignore or disconnect, since something wrong
                         if (remainData > TCP_BUFF_LEN_MAX || remainData < 0)
                         {
                             Disconnect();
                         }
-
                     }
                 }
                 //got length, continue collect data
@@ -199,33 +200,33 @@ namespace UDPTCPcore
             }
         }
 
-        bool CheckMD5(byte[] inputData, int offsetData, int countData, byte[] inputMD5, int offsetMD5)
+        bool CheckMD5()
         {
             //check AES
             if (AESkey == null) //it is first packet AES_ID_salt, not necessary check MD5, RSA is enough
                 return true;
 
             //decrypt MD5 first
-            byte[] MD5checksum = AES.AES_Decrypt(inputMD5, offsetMD5, TcpPacketStruct.SIZE_OF_MD5, AESkey, true); //overwrite
+            byte[] MD5checksum = AES.AES_Decrypt(Tcpbuff, TcpPacketStruct.POS_OF_MD5, TcpPacketStruct.SIZE_OF_MD5, AESkey, true); //overwrite
             if (MD5checksum == null) return false;
 
-            byte[] hashed = MD5.MD5Hash(inputData, offsetData, countData);
+            byte[] hashed = MD5.MD5Hash(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD, curPacketSize - TcpPacketStruct.SIZE_OF_MD5);
             //CompareMD5 (16B)
             for (int i = 0; i < TcpPacketStruct.SIZE_OF_MD5; i++)
             {
-                if (hashed[i] != inputMD5[offsetMD5 + i]) return false;
+                if (hashed[i] != Tcpbuff[TcpPacketStruct.POS_OF_MD5 + i]) return false;
             }
             return true;
         }
 
-        //use for salt, Token and AES packet sent from client
-        bool CheckMD5NoDecrypt(byte[] inputData, int offsetData, int countData, byte[] inputMD5, int offsetMD5)
+        //use for (salt, Token and AES) packet sent from client
+        bool CheckMD5NoDecrypt()
         {
-            byte[] hashed = MD5.MD5Hash(inputData, offsetData, countData);
+            byte[] hashed = MD5.MD5Hash(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD, curPacketSize - TcpPacketStruct.SIZE_OF_MD5);
             //CompareMD5 (16B)
             for (int i = 0; i < TcpPacketStruct.SIZE_OF_MD5; i++)
             {
-                if (hashed[i] != inputMD5[offsetMD5 + i]) return false;
+                if (hashed[i] != Tcpbuff[TcpPacketStruct.POS_OF_MD5 + i]) return false;
             }
             return true;
         }
@@ -261,49 +262,47 @@ namespace UDPTCPcore
         int totalBytes = 0;
         void HandleRecvTcpPacket()
         {
-            //
-            //if (curPacketSize > 400)
-            //{
-            //    ResetKeepAliveTimeoutTimer();
-            //    totalBytes += curPacketSize;
-            //    _log.LogInformation($"Total byte: {totalBytes}");
-            //    return;
-            //}
-            //
             ErrorRecv = true;
             //at least 16B MD5, 1B data
             if (curPacketSize > 16)
             {
                 //check MD5 first
-                if (CheckMD5(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD, curPacketSize - TcpPacketStruct.SIZE_OF_MD5, Tcpbuff, TcpPacketStruct.POS_OF_MD5))
+                if (CheckMD5())
                 {
                     if (IsHandshaked)
                     {
-                        if (HandleTLSPacket(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD, curPacketSize - TcpPacketStruct.SIZE_OF_MD5))  //handle at derived class
+                        if (HandleTLSPacket())  //handle at derived class
                             ErrorRecv = false;
                     }
                     else
                     {
                         //decrypt RSA packet, get salt, check Token and then get AES-128
-                        byte[] decrypted = rsa.Decrypt(Tcpbuff);
-                        if(decrypted != null)
+                        byte[] rsaPacket = new byte[curPacketSize];
+                        System.Buffer.BlockCopy(Tcpbuff, TcpPacketStruct.POS_OF_MD5, rsaPacket, 0, curPacketSize);
+                        byte[] decrypted = rsa.Decrypt(rsaPacket);
+                        if (decrypted != null)
+                        {
                             tokenLen = (decrypted.Length - TcpPacketStruct.SIZE_OF_MD5 - AESkeyLen) / 2;
-                        if (tokenLen > 0 && CheckMD5NoDecrypt(decrypted, TcpPacketStruct.SIZE_OF_MD5, decrypted.Length - TcpPacketStruct.SIZE_OF_MD5, decrypted, 0))
+                            //copy decryted byte to TcpBuff
+                            curPacketSize = decrypted.Length;
+                            System.Buffer.BlockCopy(decrypted, 0, Tcpbuff, TcpPacketStruct.POS_OF_MD5, curPacketSize);
+                        }
+                        if (tokenLen > 0 && CheckMD5NoDecrypt())
                         {
                             //get first salt (note, need & 0x7F to make sure value < 128)
                             salt = new byte[tokenLen];
-                            System.Buffer.BlockCopy(decrypted, TcpPacketStruct.POS_OF_PAYLOAD, salt, 0, tokenLen);
+                            System.Buffer.BlockCopy(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD, salt, 0, tokenLen);
                             for (int i = 0; i < tokenLen; i++) { salt[i] &= 0x7F; }
 
                             //get token, but de-convert with salt first
-                            ConvertTextWithSalt(decrypted, TcpPacketStruct.POS_OF_PAYLOAD + salt.Length, tokenLen, SaltEnum.Sub);
-                            token = Encoding.UTF8.GetString(decrypted, TcpPacketStruct.POS_OF_PAYLOAD + salt.Length, tokenLen);
+                            ConvertTextWithSalt(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD + tokenLen, tokenLen, SaltEnum.Sub);
+                            token = Encoding.UTF8.GetString(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD + tokenLen, tokenLen);
                             //check token is exist
                             if (CheckTokenClient())
                             {
                                 //get next 16B AES
                                 AESkey = new byte[AESkeyLen];
-                                System.Buffer.BlockCopy(decrypted, TcpPacketStruct.POS_OF_PAYLOAD + salt.Length + tokenLen, AESkey, 0, AESkeyLen);
+                                System.Buffer.BlockCopy(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD + tokenLen + tokenLen, AESkey, 0, AESkeyLen);
 
                                 //send back ID to ACK with client
                                 SendHandshakePackAsync(SendPackeTypeEnum.ACK);
@@ -339,7 +338,7 @@ namespace UDPTCPcore
                     _log.LogInformation($"Diff NTP: {diff}");
                     ErrorRecv = false;
                 }
-            } //keep alive, nothing can't do    
+            }
             
             if (ErrorRecv)
             {
@@ -365,7 +364,7 @@ namespace UDPTCPcore
 
         protected override void OnError(SocketError error)
         {
-            _log.LogError($"Chat TCP session caught an error with code {error}");
+            _log.LogError($"TCP session caught an error with code {error}");
         }
 
         protected override void OnEmpty()
@@ -389,50 +388,61 @@ namespace UDPTCPcore
         }
 
         //get length and add MD5 (then encrypt) to packet before send
-        void SendPacketAsync(byte[] data, int offset, int len)
+        //void SendPacketAsync(byte[] data, int offset, int len)
+        //length of payload make sure >= AES_BLOCK_LEN
+        bool SendPacketAsync(byte[] data)
         {
-            //check data array
-            if ((data.Length - offset) < len) return;
+            //check data array have at least 1B at payload
+            if (data != null && data.Length < (TcpPacketStruct.HEADER_LEN + AES.AES_BLOCK_LEN)) return false;
+            int len = data.Length;
 
-            if(AESkey != null)
+            byte[] md5Checksum;
+            if (AESkey != null)
             {
                 //encrypt data first then get md5 checksum
-                byte[] encryptedData = AES.AES_Encrypt(data, offset, len, AESkey);
+                AES.AES_Encrypt_Overwrite_Nopadding(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN, AESkey);
 
-                byte[] md5Checksum = MD5.MD5Hash(encryptedData, 0, encryptedData.Length);
-                md5Checksum = AES.AES_Encrypt(md5Checksum, 0, md5Checksum.Length, AESkey); //encrypt
-
-                //send header then payload
-                SendAsync(BitConverter.GetBytes(encryptedData.Length + TcpPacketStruct.SIZE_OF_MD5));
-                SendAsync(md5Checksum);
-                SendAsync(encryptedData);
+                md5Checksum = MD5.MD5Hash(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN);
+                AES.AES_Encrypt_Overwrite_Nopadding(md5Checksum, 0, md5Checksum.Length, AESkey); //encrypt
             }
             else //this case has only one packet, that is sending pubkey
             {
-                byte[] md5Checksum = MD5.MD5Hash(data, offset, len);
-                SendAsync(BitConverter.GetBytes(len + TcpPacketStruct.SIZE_OF_MD5));
-                SendAsync(md5Checksum);
-                SendAsync(data, offset, len);
+                md5Checksum = MD5.MD5Hash(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN);
             }
+
+            //copy md5 sum
+            System.Buffer.BlockCopy(md5Checksum, 0, data, TcpPacketStruct.POS_OF_MD5, md5Checksum.Length);
+
+            //copy len
+            System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, 0, TcpPacketStruct.SIZE_OF_LEN);
+
+            //send packet string
+            string sendString = Convert.ToHexString(data) + "#"; //end with "#"
+
+            return SendAsync(sendString);
         }
 
-        //non-encrypt payload, but stil encrypt md5
+        //non-encrypt payload, but stil encrypt md5 (audio only), make sure len of payload >= 16
         bool SendPacketAsyncNoEncrypt(byte[] data)
         {
             //check data array
 
-            if (data != null && AESkey != null && data.Length > 20) // 4B len, 16B md5
+            if (data != null && AESkey != null && data.Length >= (TcpPacketStruct.HEADER_LEN + AES.AES_BLOCK_LEN)) // 2B len, 16B md5
             {
-                byte[] md5Checksum = MD5.MD5Hash(data, 20, data.Length - 20);
-                md5Checksum = AES.AES_Encrypt_Overwrite(md5Checksum, 0, 16, AESkey); //encrypt
-                //copy md5
-                System.Buffer.BlockCopy(md5Checksum, 0, data, 4, 16);
+                int len = data.Length;
+                byte[] md5Checksum = MD5.MD5Hash(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN);
+                AES.AES_Encrypt_Overwrite_Nopadding(md5Checksum, 0, TcpPacketStruct.SIZE_OF_MD5, AESkey); //encrypt
+
+                //copy md5 sum                                                                    
+                System.Buffer.BlockCopy(md5Checksum, 0, data, TcpPacketStruct.POS_OF_MD5, TcpPacketStruct.SIZE_OF_MD5);
 
                 //copy len
-                System.Buffer.BlockCopy(BitConverter.GetBytes(data.Length - 4), 0, data, 0, 4);
+                System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);
 
-                //send header then payload
-                return SendAsync(data);
+                //send packet string
+                string sendString = Convert.ToHexString(data) + "#"; //end with "#"
+
+                return SendAsync(sendString);
             }
             return false;
         }
@@ -446,32 +456,35 @@ namespace UDPTCPcore
             {
                 if (type == SendPackeTypeEnum.Pubkey)
                 {
-                    byte[] sendPubkeyBuff = new byte[rsa.publicKey.Modulus.Length]; //4 byte length , 1 byte type, n byte pub key
+                    byte[] sendPubkeyBuff = new byte[rsa.publicKey.Modulus.Length + TcpPacketStruct.HEADER_LEN]; //4 byte length , 1 byte type, n byte pub key
+                    
                     //copy pubkey
-                    System.Buffer.BlockCopy(rsa.publicKey.Modulus, 0, sendPubkeyBuff, 0, rsa.publicKey.Modulus.Length);
+                    System.Buffer.BlockCopy(rsa.publicKey.Modulus, 0, sendPubkeyBuff, TcpPacketStruct.POS_OF_PAYLOAD, rsa.publicKey.Modulus.Length);
 
                     //trick exchange first and last two bytes to prevent hack
-                    byte tmp = sendPubkeyBuff[ 1];
-                    sendPubkeyBuff[1] = sendPubkeyBuff[0];
-                    sendPubkeyBuff[0] = tmp;
+                    byte tmp = sendPubkeyBuff[TcpPacketStruct.POS_OF_PAYLOAD + 1];
+                    sendPubkeyBuff[TcpPacketStruct.POS_OF_PAYLOAD + 1] = sendPubkeyBuff[TcpPacketStruct.POS_OF_PAYLOAD];
+                    sendPubkeyBuff[TcpPacketStruct.POS_OF_PAYLOAD] = tmp;
 
                     tmp = sendPubkeyBuff[sendPubkeyBuff.Length - 2];
                     sendPubkeyBuff[sendPubkeyBuff.Length - 2] = sendPubkeyBuff[sendPubkeyBuff.Length - 1];
                     sendPubkeyBuff[sendPubkeyBuff.Length - 1] = tmp;
 
-                    SendPacketAsync(sendPubkeyBuff, 0, sendPubkeyBuff.Length);
-                    Thread.Sleep(1000);
-                    int xx = 0;
+                    SendPacketAsync(sendPubkeyBuff);
                 }
                 else if (type == SendPackeTypeEnum.ACK)
                 {
                     //send back salt
                     if(salt != null)
                     {
-                        byte[] new_salt = new byte[salt.Length];
-                        System.Buffer.BlockCopy(salt, 0, new_salt, 0, salt.Length);
-                        for(int i = 0; i < new_salt.Length; i++) { new_salt[i] |= 0x80; }
-                        SendPacketAsync(new_salt, 0, new_salt.Length);
+                        int lenTmp;
+                        if (salt.Length < 16) lenTmp = 16; //make sure len of payload (TCP packet >= 16)
+                        else lenTmp = salt.Length;
+
+                        byte[] new_salt = new byte[lenTmp + TcpPacketStruct.HEADER_LEN];
+                        System.Buffer.BlockCopy(salt, 0, new_salt, TcpPacketStruct.POS_OF_PAYLOAD, salt.Length);
+                        for(int i = TcpPacketStruct.POS_OF_PAYLOAD; i < new_salt.Length; i++) { new_salt[i] |= 0x80; }
+                        SendPacketAsync(new_salt);
                     }
                 }
             }
