@@ -13,8 +13,8 @@ namespace UDPTCPcore
     class TLSSession : TcpSession
     {
         //debug
-        const int CONNECT_TIMEOUT = 3000000; //10s for TLS handshake
-        const int KEEP_ALIVE_TIMEOUT = 12000000; //120s for keep alive after handshake
+        const int CONNECT_TIMEOUT = 10 * 1000; //10s for TLS handshake
+        const int KEEP_ALIVE_TIMEOUT = 120 * 1000; //120s for keep alive after handshake
         internal bool IsHandshaked { get; private set; } //get successfull AES key
         public RSA rsa;
         System.Timers.Timer timeoutTimer;
