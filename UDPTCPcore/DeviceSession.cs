@@ -172,7 +172,7 @@ namespace UDPTCPcore
                     if(sendFail)
                     {
                         missFrame++;
-                        _log.LogInformation($"{Id} {token} miss frame: {missFrame}");
+                        _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
                     }
                     lastSendTimestampe = sendTimestamp;
                 }
