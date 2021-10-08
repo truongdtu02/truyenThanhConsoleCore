@@ -163,18 +163,30 @@ namespace UDPTCPcore
 
                 if(encrypted != null)
                 {
-                    bool sendFail = true;
-                    if ((BytesPending + sendPack.Length) < OptionSendBufferSize)
-                    {
-                        if(SendTLSPacket(sendPack, false)) sendFail = false;
-                    }
+                    //debug
 
-                    if(sendFail)
+                    //bool sendFail = true;
+                    //if ((BytesPending + sendPack.Length) < OptionSendBufferSize)
+                    //{
+                    //    if(SendTLSPacket(sendPack, false)) sendFail = false;
+                    //}
+
+                    //if(sendFail)
+                    //{
+                    //    //try sends
+                    //    byte[] tmpBuffer = new byte[1];
+                    //    SendAsync(tmpBuffer, 1, 1);
+                    //    missFrame++;
+                    //    _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
+                    //}
+
+                    if (!SendTLSPacket(sendPack, false))
                     {
                         missFrame++;
                         _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
                     }
-                    lastSendTimestampe = sendTimestamp;
+                    else 
+                        lastSendTimestampe = sendTimestamp;
                 }
             }
         }
