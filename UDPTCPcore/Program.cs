@@ -34,7 +34,7 @@ namespace UDPTCPcore
             //byte[] test = new byte[0]; //still correct
 
             NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
-            //ntpServer.Start();
+            ntpServer.Start();
 
             DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
             deviceServer.Run();

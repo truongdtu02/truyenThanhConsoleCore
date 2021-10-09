@@ -185,8 +185,11 @@ namespace UDPTCPcore
                         missFrame++;
                         _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
                     }
-                    else 
+                    else
+                    {
                         lastSendTimestampe = sendTimestamp;
+                        Console.Write(".");
+                    }
                 }
             }
         }
