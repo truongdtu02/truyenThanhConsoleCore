@@ -97,7 +97,8 @@ namespace UDPTCPcore
                         System.Timers.Timer sendTimer = new System.Timers.Timer(intervalSend);
                         InitiliazeSendTimer(sendTimer, _countdown, intervalSend);
 
-                        int sendTime = 1; //start from 1 ~ client play delay NUM_OF_FRAME_SEND_PER_PACKET frames
+                        int sendTime = 0;
+                        int playTimeDelayms = 1000; //client delay play 1s with server play
                         UInt32 frameID = 0, oldFrameID = 0;
                         //read frame and send
                         while(true)
@@ -123,7 +124,7 @@ namespace UDPTCPcore
                             }
                             if(totalLen > 0)
                             {
-                                long frameTimestamp = sendTime * (long)intervalSend + startTime;
+                                long frameTimestamp = sendTime * (long)intervalSend + startTime + playTimeDelayms;
                                 byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, frameTimestamp, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
                                 
                                 //send packet

@@ -48,7 +48,7 @@ namespace MP3_ADU
         //static byte timePerFrame; //1B (ms)
         static int timePerFrame_offset =        2 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2 + 2;
 
-        public const int HEADER_SIZE =                 4 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2 + 2 + 1;
+        public const int HEADER_SIZE =          2 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2 + 2 + 1;
 
         public static byte[] Packet(List<byte[]> mp3FrameList, byte _volume, long _timestamp, UInt32 _frameId,
             UInt16 _frameSize, byte _timePerFrame, int _totalLen)
@@ -98,10 +98,10 @@ namespace MP3_ADU
             }
 
             //debug add a,b,c,d,e
-            for (int i = 1; i < 17; i++)
-            {
-                buff[buff.Length - i] = (byte)('z' - i);
-            }
+            //for (int i = 1; i < 17; i++)
+            //{
+            //    buff[buff.Length - i] = (byte)('z' - i);
+            //}
 
             //encrypt with above key, from volume
             AES.AES_Encrypt_Overwrite_Nopadding(buff, volume_offset, buff.Length - volume_offset, AESkey);
