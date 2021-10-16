@@ -83,7 +83,7 @@ namespace UDPTCPcore
                 //send 
                 foreach(var song in soundList)
                 {
-                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    //long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     using (FileStream mp3Song = new FileStream(song, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         MP3_Frame_CBR mp3Read = new MP3_Frame_CBR(mp3Song);
@@ -124,7 +124,9 @@ namespace UDPTCPcore
                             }
                             if(totalLen > 0)
                             {
-                                long frameTimestamp = sendTime * (long)intervalSend + startTime + playTimeDelayms;
+                                long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                                //long frameTimestamp = sendTime * (long)intervalSend + startTime + playTimeDelayms;
+                                long frameTimestamp = startTime + playTimeDelayms;
                                 byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, frameTimestamp, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
                                 
                                 //send packet
