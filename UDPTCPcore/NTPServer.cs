@@ -107,7 +107,7 @@ namespace UDPTCPcore
 
                 checkSum = caculateChecksum(sendBuff, 0, 12);
 
-                System.Buffer.BlockCopy(sendBuff, 12, BitConverter.GetBytes(checkSum), 0, 2);
+                System.Buffer.BlockCopy(BitConverter.GetBytes(checkSum), 0, sendBuff, 12, 2);
 
                 //send packet string
                 string sendString = Convert.ToHexString(sendBuff);
