@@ -28,7 +28,30 @@ namespace UDPTCPcore
             // Start receive datagrams
             ReceiveAsync();
         }
-        
+
+        UInt16 caculateChecksum(byte[] data, int offset, int length)
+        {
+            UInt32 checkSum = 0;
+            int index = offset;
+            while (length > 1)
+            {
+                checkSum += ((UInt32)data[index] << 8) | ((UInt32)data[index + 1]); //little edian
+                length -= 2;
+                index += 2;
+            }
+            if (length == 1) // still have 1 byte
+            {
+                checkSum += ((UInt32)data[index] << 8);
+            }
+            while ((checkSum >> 16) > 0) //checkSum > 0xFFFF
+            {
+                checkSum = (checkSum & 0xFFFF) + (checkSum >> 16);
+            }
+            //inverse
+            checkSum = ~checkSum;
+            return (UInt16)checkSum;
+        }
+
         protected override void OnReceived(EndPoint endpoint, byte[] buffer, long offset, long size)
         {
             //Console.WriteLine("Incoming: " + Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
@@ -74,11 +97,18 @@ namespace UDPTCPcore
                 _log.LogInformation($"NTP {curTime}");
 
 
-                byte[] sendBuff = new byte[12];
+                byte[] sendBuff = new byte[14]; //4B client time, 8B server time, 2B checksum
                 System.Buffer.BlockCopy(BitConverter.GetBytes(curTime), 0, sendBuff, 0, 8);
                 System.Buffer.BlockCopy(buffer, (int)offset, sendBuff, 8, 4);
 
-                SendAsync(endpoint, sendBuff);
+                UInt16 checkSum = caculateChecksum(sendBuff, 0, 12);
+
+                System.Buffer.BlockCopy(sendBuff, 12, BitConverter.GetBytes(checkSum), 0, 2);
+
+                //send packet string
+                string sendString = Convert.ToHexString(sendBuff);
+
+                SendAsync(endpoint, sendString);
             }
             ReceiveAsync();
         }
