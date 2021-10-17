@@ -91,8 +91,12 @@ namespace UDPTCPcore
                 //System.Buffer.BlockCopy(BitConverter.GetBytes(DateTimeOffset.Now.ToUnixTimeMilliseconds()), 0, ntpBuffer, 4, sizeof(long));
                 //SendAsync(endpoint, ntpBuffer, 0, 12);
             }
-            else if(size == 4)
+            else if(size == 6)
             {
+                //checksum first
+                UInt16 checkSum = caculateChecksum(buffer, (int)offset, 4);
+                if (checkSum != BitConverter.ToUInt16(buffer, (int)offset + 4)) return;
+
                 long curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 _log.LogInformation($"NTP {curTime}");
 
@@ -101,7 +105,7 @@ namespace UDPTCPcore
                 System.Buffer.BlockCopy(BitConverter.GetBytes(curTime), 0, sendBuff, 0, 8);
                 System.Buffer.BlockCopy(buffer, (int)offset, sendBuff, 8, 4);
 
-                UInt16 checkSum = caculateChecksum(sendBuff, 0, 12);
+                checkSum = caculateChecksum(sendBuff, 0, 12);
 
                 System.Buffer.BlockCopy(sendBuff, 12, BitConverter.GetBytes(checkSum), 0, 2);
 
