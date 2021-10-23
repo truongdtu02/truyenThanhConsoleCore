@@ -111,7 +111,9 @@ namespace UDPTCPcore
                             {
                                 if(i == 0)
                                 {
-                                    tmp = mp3Read.ReadNextADU();
+                                    //debug
+                                    //tmp = mp3Read.ReadNextADU();
+                                    tmp = mp3Read.ReadNextFrame(true);
                                 }
                                 else
                                 {
