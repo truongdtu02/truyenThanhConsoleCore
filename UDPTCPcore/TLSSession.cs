@@ -308,7 +308,7 @@ namespace UDPTCPcore
                                 SendHandshakePackAsync(SendPackeTypeEnum.ACK);
                                 IsHandshaked = true;
 
-                                _log.LogInformation($"{Id} TLS-handshake successfull!");
+                                _log.LogInformation($"{token} TLS-handshake successfull!");
 
                                 OnTLSConnectedNotify();
 

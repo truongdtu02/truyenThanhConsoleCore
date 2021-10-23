@@ -188,7 +188,7 @@ namespace UDPTCPcore
                     else
                     {
                         lastSendTimestampe = sendTimestamp;
-                        Console.Write($"{token} .");
+                        Console.Write($"{token[tokenLen-1]} .");
                     }
                 }
             }
