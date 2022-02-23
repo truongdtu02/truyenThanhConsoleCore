@@ -60,7 +60,6 @@ namespace MP3_ADU
             //debug
             //byte[] buff = new byte[1020]; //fixed size of packet 6400B is max case 43 packet, 1020-5
 
-
             //create AES_key
             Random rd = new Random();
             byte[] AESkey = new byte[AESkeyLen];

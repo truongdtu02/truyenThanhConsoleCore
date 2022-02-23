@@ -100,7 +100,6 @@ namespace UDPTCPcore
                 long curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 _log.LogInformation($"NTP {curTime}");
 
-
                 byte[] sendBuff = new byte[14]; //4B client time, 8B server time, 2B checksum
                 System.Buffer.BlockCopy(BitConverter.GetBytes(curTime), 0, sendBuff, 0, 8);
                 System.Buffer.BlockCopy(buffer, (int)offset, sendBuff, 8, 4);
