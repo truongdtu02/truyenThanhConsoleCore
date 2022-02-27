@@ -441,12 +441,10 @@ namespace UDPTCPcore
                 //copy len
                 System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);
 
-                //copy id
-                System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(idPacket)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);
-                idPacket++;
-
                 //send packet string
-                string sendString = Convert.ToHexString(data) + "#"; //end with "#"
+                string sendString = Convert.ToHexString(BitConverter.GetBytes(idPacket)) + Convert.ToHexString(data) + "#"; //end with "#"
+
+                idPacket++;
 
                 return SendAsync(sendString);
             }
