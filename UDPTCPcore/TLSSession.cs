@@ -391,6 +391,7 @@ namespace UDPTCPcore
         //get length and add MD5 (then encrypt) to packet before send
         //void SendPacketAsync(byte[] data, int offset, int len)
         //length of payload make sure >= AES_BLOCK_LEN
+        UInt32 packID = 0;
         bool SendPacketAsync(byte[] data)
         {
             //check data array have at least 1B at payload
@@ -418,7 +419,9 @@ namespace UDPTCPcore
             System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, 0, TcpPacketStruct.SIZE_OF_LEN);
 
             //send packet string
-            string sendString = Convert.ToHexString(data) + "#"; //end with "#"
+            string sendString = Convert.ToHexString(BitConverter.GetBytes(packID)) + Convert.ToHexString(data) + "#"; //end with "#"
+
+            packID++;
 
             return SendAsync(sendString);
         }
