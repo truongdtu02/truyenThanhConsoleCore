@@ -419,7 +419,7 @@ namespace UDPTCPcore
             System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, 0, TcpPacketStruct.SIZE_OF_LEN);
 
             //send packet string
-            string sendString = Convert.ToHexString(BitConverter.GetBytes(packID)) + Convert.ToHexString(data) + "#"; //end with "#"
+            string sendString = "*" + Convert.ToHexString(BitConverter.GetBytes(packID)) + Convert.ToHexString(data) + "#"; //end with "#"
 
             packID++;
 
@@ -445,7 +445,7 @@ namespace UDPTCPcore
                 System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);
 
                 //send packet string
-                string sendString = Convert.ToHexString(BitConverter.GetBytes(idPacket)) + Convert.ToHexString(data) + "#"; //end with "#"
+                string sendString = "*" + Convert.ToHexString(BitConverter.GetBytes(idPacket)) + Convert.ToHexString(data) + "#"; //end with "#"
 
                 idPacket++;
 
