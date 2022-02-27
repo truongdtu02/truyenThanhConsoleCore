@@ -84,6 +84,7 @@ namespace UDPTCPcore
             IsHandshaked = false;
             rsa = new RSA();
             _log = log;
+            OptionSendBufferSize = 20000;
 
             InitiliazeTimeoutTimer();
         }
@@ -423,6 +424,7 @@ namespace UDPTCPcore
         }
 
         //non-encrypt payload, but stil encrypt md5 (audio only), make sure len of payload >= 16
+        int idPacket = 0;
         bool SendPacketAsyncNoEncrypt(byte[] data)
         {
             //check data array
@@ -438,6 +440,10 @@ namespace UDPTCPcore
 
                 //copy len
                 System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);
+
+                //copy id
+                System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(idPacket)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);
+                idPacket++;
 
                 //send packet string
                 string sendString = Convert.ToHexString(data) + "#"; //end with "#"
