@@ -133,6 +133,7 @@ namespace UDPTCPcore
             }
         }
         int missFrame = 0, countSend = 0;
+        long totalBytes = 0;
         internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp)
         {
             if (sendPack == null || (!IsHandshaked)) return;
@@ -159,9 +160,9 @@ namespace UDPTCPcore
                 //copy session
                 System.Buffer.BlockCopy(BitConverter.GetBytes(curSession), 0, sendPack, MP3PacketHeader.SESSION_POS, MP3PacketHeader.SESSION_LEN);
 
-                byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, MP3PacketHeader.TYPE_POS, 32, AESkey); //encrypt type, session and aeskey
+                //byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, MP3PacketHeader.TYPE_POS, 32, AESkey); //encrypt type, session and aeskey
 
-                if(encrypted != null)
+                if(sendPack != null)
                 {
                     //debug
 
@@ -187,8 +188,9 @@ namespace UDPTCPcore
                     }
                     else
                     {
+                        totalBytes += (sendPack.Length * 2 + 1);
                         lastSendTimestampe = sendTimestamp;
-                        Console.Write($"{token[tokenLen-1]} .");
+                        //Console.Write($"{token[tokenLen-1]} ({0}).", totalBytes);
                     }
                 }
             }

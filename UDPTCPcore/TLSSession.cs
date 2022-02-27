@@ -430,11 +430,11 @@ namespace UDPTCPcore
             if (data != null && AESkey != null && data.Length >= (TcpPacketStruct.HEADER_LEN + AES.AES_BLOCK_LEN)) // 2B len, 16B md5
             {
                 int len = data.Length;
-                byte[] md5Checksum = MD5.MD5Hash(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN);
-                AES.AES_Encrypt_Overwrite_Nopadding(md5Checksum, 0, TcpPacketStruct.SIZE_OF_MD5, AESkey); //encrypt
+                //byte[] md5Checksum = MD5.MD5Hash(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN);
+                //AES.AES_Encrypt_Overwrite_Nopadding(md5Checksum, 0, TcpPacketStruct.SIZE_OF_MD5, AESkey); //encrypt
 
-                //copy md5 sum                                                                    
-                System.Buffer.BlockCopy(md5Checksum, 0, data, TcpPacketStruct.POS_OF_MD5, TcpPacketStruct.SIZE_OF_MD5);
+                ////copy md5 sum                                                                    
+                //System.Buffer.BlockCopy(md5Checksum, 0, data, TcpPacketStruct.POS_OF_MD5, TcpPacketStruct.SIZE_OF_MD5);
 
                 //copy len
                 System.Buffer.BlockCopy(BitConverter.GetBytes((UInt16)(len - TcpPacketStruct.SIZE_OF_LEN)), 0, data, TcpPacketStruct.POS_OF_LEN, TcpPacketStruct.SIZE_OF_LEN);

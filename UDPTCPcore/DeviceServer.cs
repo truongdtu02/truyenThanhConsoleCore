@@ -49,6 +49,29 @@ namespace UDPTCPcore
             sendTimer.Enabled = true;
         }
 
+        UInt16 caculateChecksum(byte[] data, int offset, int length)
+        {
+            UInt32 checkSum = 0;
+            int index = offset;
+            while (length > 1)
+            {
+                checkSum += ((UInt32)data[index] << 8) | ((UInt32)data[index + 1]); //little edian
+                length -= 2;
+                index += 2;
+            }
+            if (length == 1) // still have 1 byte
+            {
+                checkSum += ((UInt32)data[index] << 8);
+            }
+            while ((checkSum >> 16) > 0) //checkSum > 0xFFFF
+            {
+                checkSum = (checkSum & 0xFFFF) + (checkSum >> 16);
+            }
+            //inverse
+            checkSum = ~checkSum;
+            return (UInt16)checkSum;
+        }
+
         internal void Run()
         {
             // Start the server
@@ -101,6 +124,7 @@ namespace UDPTCPcore
                         int playTimeDelayms = 1000; //client delay play 1s with server play
                         UInt32 frameID = 0, oldFrameID = 0;
                         //read frame and send
+                        //Stream fMp3 = File.OpenWrite(@"D:/adu.mp3");
                         while(true)
                         {
                             //get frame
@@ -112,8 +136,8 @@ namespace UDPTCPcore
                                 if(i == 0)
                                 {
                                     //debug
-                                    tmp = mp3Read.ReadNextADU();
-                                    //tmp = mp3Read.ReadNextFrame(true);
+                                    //tmp = mp3Read.ReadNextADU();
+                                    tmp = mp3Read.ReadNextFrame(true);
                                 }
                                 else
                                 {
@@ -130,7 +154,19 @@ namespace UDPTCPcore
                                 //long frameTimestamp = sendTime * (long)intervalSend + startTime + playTimeDelayms;
                                 long frameTimestamp = startTime + playTimeDelayms;
                                 byte[] sendBuff= MP3PacketHeader.Packet(mp3FrameList, 100, frameTimestamp, oldFrameID, (UInt16)(mp3Read.Frame_size - 4), (byte)mp3Read.TimePerFrame_ms, totalLen);
-                                
+
+                                //byte[] aduPac = new byte[5 * 144];
+                                //System.Buffer.BlockCopy(mp3FrameList[0], 0, aduPac, 0, 144);
+                                //for(int jd = 1; jd < 5; jd++)
+                                //{
+                                //    System.Buffer.BlockCopy(mp3FrameList[0], 0, aduPac, jd * 144, 4);
+                                //    System.Buffer.BlockCopy(mp3FrameList[jd], 0, aduPac, jd * 144 + 4, 140);
+                                //}
+
+                                //UInt16 chsum = caculateChecksum(aduPac, 0, aduPac.Length);
+                                //Console.WriteLine("{0} 0x{1:X}", oldFrameID, chsum);
+
+                                //fMp3.Write(aduPac, 0, aduPac.Length);
                                 //send packet
                                 //foreach(var dv in listDeviceSession)
                                 //{
@@ -199,7 +235,7 @@ namespace UDPTCPcore
                         }
                         sendTimer.Close();
                         _countdown.Dispose();
-
+                        //fMp3.Close();
                         Thread.Sleep(500); //gap between songs
                     }
                 }
