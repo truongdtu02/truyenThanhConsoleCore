@@ -11,12 +11,50 @@ using MP3_ADU;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
+using Newtonsoft.Json;
 
 namespace UDPTCPcore
 {
+    class deviceID
+    {
+        [JsonProperty("listID")]
+        private List<string> listID;
+    }
     class DeviceServer : TcpServer
     {
         private readonly ILogger<DeviceServer> _log;
+        private List<string> _listID;
+        private Object lockObj = new Object();
+        internal void updateListID(List<string> listID)
+        {
+            var timeout = TimeSpan.FromMilliseconds(10);
+            bool lockTaken = false;
+
+            try
+            {
+                Monitor.TryEnter(lockObj, timeout, ref lockTaken);
+                if (lockTaken)
+                {
+                    // The critical section.
+                    if(_listID != null)
+                        _listID.Clear();
+                    _listID = listID;
+                }
+                else
+                {
+                    // The lock was not acquired.
+                    _log.LogError("Can't access listID");
+                }
+            }
+            finally
+            {
+                // Ensure that the lock is released.
+                if (lockTaken)
+                {
+                    Monitor.Exit(lockObj);
+                }
+            }
+        }
 
         //DeviceSession deviceSession;
         //internal ChatSession ChatSession { get => chatSession; }

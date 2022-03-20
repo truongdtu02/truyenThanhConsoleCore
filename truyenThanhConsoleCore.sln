@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31515.178
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DI_console_app", "DI_console_app\DI_console_app.csproj", "{AC9AB72C-C401-4AAC-B226-5003885AA298}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDPTCPcore", "UDPTCPcore\UDPTCPcore.csproj", "{77747244-EF22-4AE7-A948-D5216AF894EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerChat", "ServerChat\ServerChat.csproj", "{4AF5AB21-8EB7-4073-ABEE-5B7DC70E7894}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerChat", "ServerChat\ServerChat.csproj", "{4AF5AB21-8EB7-4073-ABEE-5B7DC70E7894}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPUDPcore_nonDatabase", "TCPUDPcore_nonDatabase\TCPUDPcore_nonDatabase.csproj", "{F510017D-B927-4907-8FE6-43BEE6A131CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,26 @@ Global
 		{4AF5AB21-8EB7-4073-ABEE-5B7DC70E7894}.Release|x64.Build.0 = Release|Any CPU
 		{4AF5AB21-8EB7-4073-ABEE-5B7DC70E7894}.Release|x86.ActiveCfg = Release|Any CPU
 		{4AF5AB21-8EB7-4073-ABEE-5B7DC70E7894}.Release|x86.Build.0 = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|ARM.Build.0 = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|x64.Build.0 = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Debug|x86.Build.0 = Debug|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|ARM.ActiveCfg = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|ARM.Build.0 = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|ARM64.Build.0 = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x64.ActiveCfg = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x64.Build.0 = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x86.ActiveCfg = Release|Any CPU
+		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
