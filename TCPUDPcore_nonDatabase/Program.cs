@@ -11,33 +11,79 @@ using System.Net;
 using System.Timers;
 using System.Threading;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 
 namespace UDPTCPcore
 {
+    
+
     class Program
     {
         internal static IHost host { get; private set; }
         static long timeStart;
+        static string api_config_file;
+        internal static UInt32 listID_host_api_cycle;
+        internal static string listID_host_api;
+        internal static string dvStt_mp3_api, ctrPlay_mp3_api, sttPlay_mp3_api, url_mp3_api;
+        internal static Thread api_request_thread, server_tcp_thread, api_server_thread;
+        internal static DeviceServer deviceServer;
+        internal static string mp3_dir;
 
         static void Main(string[] args)
-        {
-            //test
-
-            //MD5.MD5Hash("hello, anh dep zai!!!");
-            //RSA rsa = new RSA(); rsa.Run();
+        {           
             StartUp();
-            //var svc = ActivatorUtilities.CreateInstance<IGreetingService>(host.Services);
-            //var svc = host.Services.GetRequiredService<IGreetingService>();
-            //svc.Run();
-            //AES.Run();
-            //RSA rsa = new RSA(); rsa.Run();
-            //byte[] test = new byte[0]; //still correct
 
+            //get setting in xml file
+            var doc = new XmlDocument();
+            doc.Load(api_config_file);
+            //get  api_mp3 first
+            XmlNodeList node = doc.SelectNodes("//api_list/api_mp3");
+
+            foreach (XmlNode nd in node)
+            {
+                url_mp3_api = nd["url"].InnerText;
+                dvStt_mp3_api = nd["dv_stt"].InnerText;
+                ctrPlay_mp3_api = nd["ctr_play"].InnerText;
+                sttPlay_mp3_api = nd["stt_play"].InnerText;
+            }
+
+            //get  api_host
+            node = doc.SelectNodes("//api_list/api_host");
+            string url_tmp;
+            foreach (XmlNode nd in node)
+            {
+                url_tmp = nd["url"].InnerText;
+                listID_host_api = url_tmp + nd["list_id"].InnerText;
+                listID_host_api_cycle = Convert.ToUInt32(nd["list_id_request_cycle"].InnerText);
+            }
+
+            //can't run in local computer
             //NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
             //ntpServer.Start();
 
-            DeviceServer deviceServer = host.Services.GetRequiredService<DeviceServer>();
-            deviceServer.Run();
+            deviceServer = host.Services.GetRequiredService<DeviceServer>();
+            server_tcp_thread = new Thread(() => { deviceServer.Run(); });
+            //deviceServer.Run();
+            server_tcp_thread.Priority = ThreadPriority.Highest;
+            server_tcp_thread.Start();
+
+            //api_request_thread
+            api_request_thread = new Thread(async () =>
+            {
+                await MyHttpClient.api_request_task();
+            });
+            api_request_thread.Priority = ThreadPriority.Lowest;
+            api_request_thread.Start();
+
+            //api_server_thread handle request from user
+            api_server_thread = new Thread(async () =>
+            {
+                await MyHttpServer.httpServerHandle();
+            });
+            api_server_thread.Priority = ThreadPriority.Lowest;
+            api_server_thread.Start();
 
             while (true) { }
         }
@@ -65,7 +111,10 @@ namespace UDPTCPcore
 
             Log.Logger.Information("Application Starting");
 
-            host = Host.CreateDefaultBuilder()
+            api_config_file = configurationroot.GetValue<string>("ConfigAPIXml");
+            mp3_dir = configurationroot.GetValue<string>("Mp3Directory"); 
+
+             host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
                 {
                     //register option to DI
@@ -113,53 +162,3 @@ namespace UDPTCPcore
         }
     }
 }
-
-//namespace UdpEchoServer
-//{
-
-//    class Program
-//    {
-//        static void Main(string[] args)
-//        {
-//            // UDP server port
-//            int port = 3333;
-//            if (args.Length > 0)
-//                port = int.Parse(args[0]);
-
-//            Console.WriteLine($"UDP server port: {port}");
-
-//            Console.WriteLine();
-
-//            // Create a new UDP echo server
-//            var server = new EchoServer(IPAddress.Any, port);
-
-//            // Start the server
-//            Console.Write("Server starting...");
-//            server.Start();
-//            Console.WriteLine("Done!");
-
-//            Console.WriteLine("Press Enter to stop the server or '!' to restart the server...");
-
-//            // Perform text input
-//            for (; ; )
-//            {
-//                string line = Console.ReadLine();
-//                if (string.IsNullOrEmpty(line))
-//                    break;
-
-//                // Restart the server
-//                if (line == "!")
-//                {
-//                    Console.Write("Server restarting...");
-//                    server.Restart();
-//                    Console.WriteLine("Done!");
-//                }
-//            }
-
-//            // Stop the server
-//            Console.Write("Server stopping...");
-//            server.Stop();
-//            Console.WriteLine("Done!");
-//        }
-//    }
-//}

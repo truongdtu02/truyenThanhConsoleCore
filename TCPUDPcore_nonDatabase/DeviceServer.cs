@@ -12,20 +12,59 @@ using System.Diagnostics;
 using System.Threading;
 using System.Timers;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace UDPTCPcore
 {
-    class deviceID
+    class SessionPlay
     {
-        [JsonProperty("listID")]
-        private List<string> listID;
+        internal List<Int32> listID;
+        internal string action, session, state;
+
     }
     class DeviceServer : TcpServer
     {
         private readonly ILogger<DeviceServer> _log;
-        private List<string> _listID;
+        private List<Int32> _listID;
         private Object lockObj = new Object();
-        internal void updateListID(List<string> listID)
+        private List<SessionPlay> _listSessionPlay = new List<SessionPlay>();
+        internal int updateListSesionPlay(SessionPlay s)
+        {
+            if (s == null)
+                return -1;
+            bool sessionExist = false;
+            int sessionIndex;
+            try
+            {
+                //check session is exits in _listSessionPlay
+                sessionIndex = _listSessionPlay.FindIndex(x => x.session == s.session);
+                //sessionExist = _listSessionPlay.Any(x => x.session == s.session);
+                if (sessionIndex >= 0)
+                {
+                    sessionExist = true;
+                }
+                if (s.action == "new" && !sessionExist)
+                {
+                    _listSessionPlay.Add(s);
+                }
+                else if (s.action == "change" && sessionExist)
+                {
+                    _listSessionPlay[sessionIndex].listID.Clear();
+                    _listSessionPlay[sessionIndex].listID = s.listID;
+                    _listSessionPlay[sessionIndex].state = s.state;
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Logger.Error("Exception updateListSesionPlay: {0}", e.Message);
+            }
+            return 0;
+        }
+        internal void updateListID(List<Int32> listID)
         {
             var timeout = TimeSpan.FromMilliseconds(10);
             bool lockTaken = false;

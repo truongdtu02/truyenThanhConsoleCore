@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDPTCPcore", "UDPTCPcore\UD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerChat", "ServerChat\ServerChat.csproj", "{4AF5AB21-8EB7-4073-ABEE-5B7DC70E7894}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPUDPcore_nonDatabase", "TCPUDPcore_nonDatabase\TCPUDPcore_nonDatabase.csproj", "{F510017D-B927-4907-8FE6-43BEE6A131CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCPUDPcore_nonDatabase", "TCPUDPcore_nonDatabase\TCPUDPcore_nonDatabase.csproj", "{F510017D-B927-4907-8FE6-43BEE6A131CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPUDP_host_simulate", "TCPUDP_host_simulate\TCPUDP_host_simulate.csproj", "{A12C3EBA-03DB-4845-84A9-CDE359378111}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +107,26 @@ Global
 		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x64.Build.0 = Release|Any CPU
 		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x86.ActiveCfg = Release|Any CPU
 		{F510017D-B927-4907-8FE6-43BEE6A131CF}.Release|x86.Build.0 = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|ARM.Build.0 = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|x64.Build.0 = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Debug|x86.Build.0 = Debug|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|ARM.ActiveCfg = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|ARM.Build.0 = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|ARM64.Build.0 = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|x64.ActiveCfg = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|x64.Build.0 = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|x86.ActiveCfg = Release|Any CPU
+		{A12C3EBA-03DB-4845-84A9-CDE359378111}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
