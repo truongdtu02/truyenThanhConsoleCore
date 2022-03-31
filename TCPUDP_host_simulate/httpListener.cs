@@ -121,8 +121,14 @@ namespace TCPUDP_host
                 case "/listID":
                     {
                         response.Headers.Add("Content-Type", "application/json");
-
-                        List<string> listID = new List<string> { "220300001", "220300002", "220300003" };
+                        string json;
+                        using (StreamReader r = new StreamReader("E:\\list_id.json"))
+                        {
+                            json = r.ReadToEnd();
+                        }
+                        //
+                        dynamic myJObject = JsonConvert.DeserializeObject<dynamic>(json);
+                        List<string> listID = myJObject.ids.ToObject<List<string>>();
                         var ids = new
                         {
                             ids = listID

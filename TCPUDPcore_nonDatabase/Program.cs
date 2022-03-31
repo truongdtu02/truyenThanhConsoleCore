@@ -30,6 +30,7 @@ namespace UDPTCPcore
         internal static Thread api_request_thread, server_tcp_thread, api_server_thread;
         internal static DeviceServer deviceServer;
         internal static string mp3_dir;
+        internal static int frames_per_packet, time_per_frame, send_buffer_size;
 
         static void Main(string[] args)
         {           
@@ -112,7 +113,10 @@ namespace UDPTCPcore
             Log.Logger.Information("Application Starting");
 
             api_config_file = configurationroot.GetValue<string>("ConfigAPIXml");
-            mp3_dir = configurationroot.GetValue<string>("Mp3Directory"); 
+            mp3_dir = configurationroot.GetValue<string>("Mp3Directory");
+            frames_per_packet = configurationroot.GetValue<int>("FramesPerPacket"); 
+            time_per_frame = configurationroot.GetValue<int>("TimePerFrame");
+            send_buffer_size = configurationroot.GetValue<int>("SendBufferSize"); 
 
              host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>

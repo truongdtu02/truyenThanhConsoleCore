@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<api_list>
+	<api_mp3>
+		<url>http://127.0.0.1:50000/</url>
+		<dv_stt>/device_status</dv_stt>
+		<ctr_play>/control_play</ctr_play>
+		<stt_play>/status_play</stt_play>
+	</api_mp3>
+
+	<api_host>
+		<!-- <url>http://truyenthanhsmart.xyz:5100/</url> -->
+		<url>http://localhost:51000</url>
+		<list_id>/listID</list_id>
+		<list_id_request_cycle>60</list_id_request_cycle>
+		<list_user>/list_user</list_user>
+	</api_host>
+</api_list>

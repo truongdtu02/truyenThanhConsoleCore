@@ -50,7 +50,7 @@ namespace MP3_ADU
 
         public const int HEADER_SIZE =          2 + 16 + 1 + 4 + 16 + 1 + 8 + 4 + 1 + 2 + 2 + 1;
 
-        public static byte[] Packet(List<byte[]> mp3FrameList, byte _volume, long _timestamp, UInt32 _frameId,
+        public static byte[] Packet(List<byte[]> mp3FrameList, int type, UInt32 session, byte _volume, long _timestamp, UInt32 _frameId,
             UInt16 _frameSize, byte _timePerFrame, int _totalLen)
         {
             if (mp3FrameList.Count > 255) return null;
@@ -65,7 +65,13 @@ namespace MP3_ADU
             byte[] AESkey = new byte[AESkeyLen];
             rd.NextBytes(AESkey);
             //copy aes key
-            System.Buffer.BlockCopy(AESkey, 0, buff, aeskey_offset, AESkeyLen);
+            //System.Buffer.BlockCopy(AESkey, 0, buff, aeskey_offset, AESkeyLen);
+
+            //copy type
+            buff[type_offset] = (byte)type;
+
+            //copy session
+            System.Buffer.BlockCopy(BitConverter.GetBytes(session), 0, buff, session_offset, SESSION_LEN);
 
             //copy volume
             buff[volume_offset] = _volume;

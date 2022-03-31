@@ -176,22 +176,40 @@ namespace UDPTCPcore
                             //string session = myJObject.session.ToString();
                             //string state = myJObject.state.ToString().ToLower();
                             Log.Logger.Information("Request control_play_api valid.");
+                            string stateStr = myJObject.state.ToString().ToLower();
                             var sessionTmp = new SessionPlay()
                             {
                                 action = myJObject.action.ToString().ToLower(),
                                 listID = myJObject.ids.ToObject<List<Int32>>(),
                                 session = myJObject.session.ToString(),
-                                state = myJObject.state.ToString().ToLower()
-                            }; 
-                            string responseString;
-                            if (Program.deviceServer.updateListSesionPlay(sessionTmp) == 0)
+                                //state = myJObject.state.ToString().ToLower(),
+                                type = SessionPlay.TypeSession.mp3
+                            };
+                            if(stateStr == "play")
                             {
-                                responseString = "{Ok}";
+                                sessionTmp.state = SessionPlay.StateSession.play;
+                            } else if(stateStr == "pause")
+                            {
+                                sessionTmp.state = SessionPlay.StateSession.pause;
+                            }
+                            else if(stateStr == "stop")
+                            {
+                                sessionTmp.state = SessionPlay.StateSession.stop;
                             }
                             else
                             {
-                                responseString = "{Fail}";
+                                sessionTmp.state = SessionPlay.StateSession.none;
                             }
+                            //string responseString;
+                            //if (Program.deviceServer.updateListSesionPlay(sessionTmp) == 0)
+                            //{
+                            //    responseString = "{Ok}";
+                            //}
+                            //else
+                            //{
+                            //    responseString = "{Fail}";
+                            //}
+                            string responseString = Program.deviceServer.updateListSesionPlay(sessionTmp);
 
                             // Gửi thông tin về cho Client
                             context.Response.Headers.Add("content-type", "application/json");

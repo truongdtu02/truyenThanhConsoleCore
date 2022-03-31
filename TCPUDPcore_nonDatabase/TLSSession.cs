@@ -7,6 +7,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Timers;
 using System.Threading;
+using Serilog;
 
 namespace UDPTCPcore
 {
@@ -25,7 +26,8 @@ namespace UDPTCPcore
 
         byte[] salt;
         //int saltLen; //== tokenLen
-        protected string token { get; set; } //~ID of device
+        protected string token { get; set; } //~ID of device in string
+        protected Int32 _id { get; set; } //~ID of device
         /* Note: this structure is suitable with received packet, when we don't get length file (4B) to Tcpbuff
          * So be carefully use this with send packet
          */
@@ -72,7 +74,7 @@ namespace UDPTCPcore
             return true;
         }
 
-        //check token at derived class
+        //check token at derived class (Declared virtual so it can be overridden.)
         protected virtual bool CheckTokenClient() { return true; }
 
         //record time connected after TLS handshake to database (each time recv packet)
@@ -84,7 +86,7 @@ namespace UDPTCPcore
             IsHandshaked = false;
             rsa = new RSA();
             _log = log;
-            OptionSendBufferSize = 20000;
+            OptionSendBufferSize = Program.send_buffer_size;//40000;
 
             InitiliazeTimeoutTimer();
         }
@@ -298,6 +300,18 @@ namespace UDPTCPcore
                             //get token, but de-convert with salt first
                             ConvertTextWithSalt(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD + tokenLen, tokenLen, SaltEnum.Sub);
                             token = Encoding.UTF8.GetString(Tcpbuff, TcpPacketStruct.POS_OF_PAYLOAD + tokenLen, tokenLen);
+
+                            //parse token to _id
+                            try
+                            {
+                                _id = Convert.ToInt32(token);
+                            }
+                            catch (Exception ex)
+                            {
+                                _id = -1;
+                                Log.Logger.Error("Exception ID of device is invalid: {0}", ex.Message);
+                            }
+
                             //check token is exist
                             if (CheckTokenClient())
                             {
@@ -311,9 +325,15 @@ namespace UDPTCPcore
 
                                 _log.LogInformation($"{token} TLS-handshake successfull!");
 
+                                
+
                                 OnTLSConnectedNotify();
 
                                 ErrorRecv = false;
+                            }
+                            else
+                            {
+                                Log.Logger.Information($"{token} is not exits!");
                             }
                         }
                     }

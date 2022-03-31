@@ -13,14 +13,22 @@ namespace UDPTCPcore
     {
         internal string DeviceName { get; private set; }
         private readonly ILogger<DeviceSession> _log;
-        internal bool bNeedRemove = false; 
-        public DeviceSession(TcpServer server, ILogger<DeviceSession> log) : base(server, log) 
+        internal bool bNeedRemove = false;
+        public DeviceSession(TcpServer server, ILogger<DeviceSession> log) : base(server, log)
         {
             _log = log;
         }
 
         internal int TokenLen { get => tokenLen; }
         internal string Token { get => token; }
+        internal int ID { get => _id; }
+
+        protected override bool CheckTokenClient()
+        {
+            if (((DeviceServer)Server).checkDeviceExist(_id))
+                return true;
+            return false;
+        }
 
         protected override void OnTLSConnectedNotify()
         {
@@ -42,7 +50,6 @@ namespace UDPTCPcore
             //deviceServer.listDeviceSession.Remove(this);
             //_log.LogError($"{Id} disconnect!");
         }
-        
 
         // 1, 2, 3, 4
         internal enum RecvPackeTypeEnum { Status, PacketAudio};
@@ -121,7 +128,7 @@ namespace UDPTCPcore
         string curUserSend = null;
         UInt32 curSession = 0;
         long lastSendTimestampe = 0; // ms, UnixTimeMilliseconds
-        const int sessionTimeout = 1000; //10s
+        const int sessionTimeout = 1000; //1s
 
         //notify to this task that user with this priority finished sending
         internal void SendMP3PackAssyncRelease(int priority, string userSend)
@@ -134,65 +141,48 @@ namespace UDPTCPcore
         }
         int missFrame = 0, countSend = 0;
         long totalBytes = 0;
-        internal void SendMP3PackAssync(byte[] sendPack, int priority, string userSend, long sendTimestamp)
+        byte[] sendBuff;
+
+        //push byte array to device buffer
+        internal void PrepareMP3PackAssync(byte[] sendPack, int priority, long sendTimestamp)
         {
             if (sendPack == null || (!IsHandshaked)) return;
 
-            if ((DateTimeOffset.Now.ToUnixTimeMilliseconds() - lastSendTimestampe) > sessionTimeout)
+            if ((sendTimestamp - lastSendTimestampe) > sessionTimeout)
             {
                 //timeout, reset new session
                 curUserSend = null;
                 curSendMp3Priority = 0;
             }
 
-            if ((priority > curSendMp3Priority) || ((priority == curSendMp3Priority) && (userSend != curUserSend)))
+            if (priority > curSendMp3Priority)
             {
                 curSendMp3Priority = priority;
-                curUserSend = userSend;
-                curSession++;
             }
 
             if (priority == curSendMp3Priority)
             {
-                if (sendPack.Length < MP3PacketHeader.HEADER_SIZE) return;
-                //copy type
-                sendPack[MP3PacketHeader.TYPE_POS] = (byte)SendTLSPackeTypeEnum.PacketMP3;
-                //copy session
-                System.Buffer.BlockCopy(BitConverter.GetBytes(curSession), 0, sendPack, MP3PacketHeader.SESSION_POS, MP3PacketHeader.SESSION_LEN);
+                sendBuff = sendPack;
+                lastSendTimestampe = sendTimestamp;
+            }
+        }
 
-                //byte[] encrypted = AES.AES_Encrypt_Overwrite(sendPack, MP3PacketHeader.TYPE_POS, 32, AESkey); //encrypt type, session and aeskey
+        internal void SendMP3PackAssync()
+        {
 
-                if(sendPack != null)
+            if (sendBuff != null)
+            {
+                if (!SendTLSPacket(sendBuff, false))
                 {
-                    //debug
-
-                    //bool sendFail = true;
-                    //if ((BytesPending + sendPack.Length) < OptionSendBufferSize)
-                    //{
-                    //    if(SendTLSPacket(sendPack, false)) sendFail = false;
-                    //}
-
-                    //if(sendFail)
-                    //{
-                    //    //try sends
-                    //    byte[] tmpBuffer = new byte[1];
-                    //    SendAsync(tmpBuffer, 1, 1);
-                    //    missFrame++;
-                    //    _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
-                    //}
-
-                    if (!SendTLSPacket(sendPack, false))
-                    {
-                        missFrame++;
-                        _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
-                    }
-                    else
-                    {
-                        totalBytes += (sendPack.Length * 2 + 1);
-                        lastSendTimestampe = sendTimestamp;
-                        //Console.Write($"{token[tokenLen-1]} ({0}).", totalBytes);
-                    }
+                    missFrame++;
+                    _log.LogInformation($"{Id} {token} miss frame: {missFrame}. Sending {BytesSending}, pending {BytesPending}, Size {OptionSendBufferSize}");
                 }
+                else
+                {
+                    totalBytes += (sendBuff.Length * 2 + 1);
+                    //Console.Write($"{token[tokenLen-1]} ({0}).", totalBytes);
+                }
+                sendBuff = null;
             }
         }
     }
