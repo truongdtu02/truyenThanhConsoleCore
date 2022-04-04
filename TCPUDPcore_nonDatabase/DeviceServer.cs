@@ -33,7 +33,10 @@ namespace UDPTCPcore
 
         object lockSession = new object();
 
-        internal void update(List<int> _listID, )
+        internal void update(List<int> _listID)
+        {
+
+        }
 
         internal void mp3GenPlay(int numOfFrame, long startTime, long curTime)
         {
