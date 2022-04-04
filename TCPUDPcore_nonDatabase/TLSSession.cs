@@ -353,10 +353,12 @@ namespace UDPTCPcore
                 }
                 
                 //debug
-                if(curPacketSize == 4 && IsHandshaked) 
+                if(curPacketSize == 8 && IsHandshaked) 
                 {
-                    int diff = BitConverter.ToInt32(Tcpbuff, 0);
-                    _log.LogInformation($"Diff NTP: {diff}");
+                    int conTime = BitConverter.ToInt32(Tcpbuff, 2);
+                    int missTimeFrame = BitConverter.ToInt32(Tcpbuff, 6);
+                    _log.LogInformation($"CurStt: {conTime} {missTimeFrame}");
+
                     ErrorRecv = false;
                 }
             }
