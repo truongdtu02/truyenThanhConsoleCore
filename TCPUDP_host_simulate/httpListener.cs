@@ -122,9 +122,20 @@ namespace TCPUDP_host
                     {
                         response.Headers.Add("Content-Type", "application/json");
                         string json;
-                        using (StreamReader r = new StreamReader("E:\\list_id.json"))
+
+                        if (OperatingSystem.IsWindows())
                         {
-                            json = r.ReadToEnd();
+                            using (StreamReader r = new StreamReader("E:\\list_id.json"))
+                            {
+                                json = r.ReadToEnd();
+                            }
+                        }
+                        else
+                        {
+                            using (StreamReader r = new StreamReader("/etc/config/list_id.json"))
+                            {
+                                json = r.ReadToEnd();
+                            }
                         }
                         //
                         dynamic myJObject = JsonConvert.DeserializeObject<dynamic>(json);
