@@ -413,11 +413,10 @@ namespace UDPTCPcore
             curTimeMs = startTimeCycleMs;
             while (true)
             {
+                curTimeMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 for (int sendStt = 0; sendStt < 10; sendStt++)
                 {
                     madePacketMp3 = false;
-                    curTimeMs += 120;
-
                     try
                     {
                         Monitor.TryEnter(lockListSessionPlay, timeout, ref lockTaken);
@@ -456,6 +455,8 @@ namespace UDPTCPcore
                             lockTaken = false;
                         }
                     }
+
+                    curTimeMs += 120;
 
                     if (madePacketMp3)
                     {
