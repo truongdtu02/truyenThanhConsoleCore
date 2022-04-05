@@ -100,7 +100,7 @@ namespace UDPTCPcore
             }
 
             const int NUM_OF_FRAME_SEND_PER_PACKET = 5;
-
+            long olddTime = 0;
             while (true)
             {
                 //send 
@@ -225,6 +225,11 @@ namespace UDPTCPcore
                             oldFrameID = frameID;
                             //dipose
                             mp3FrameList.Clear();
+                            long tmpp = (DateTimeOffset.Now.ToUnixTimeMilliseconds()) - olddTime;
+                            olddTime = (DateTimeOffset.Now.ToUnixTimeMilliseconds());
+
+                            Console.WriteLine($"Offset: {tmpp}");
+                             
                             bool res = _countdown.Wait(_countdownTimeout); //wait after interval
                             if (res) _countdown.Reset();
 

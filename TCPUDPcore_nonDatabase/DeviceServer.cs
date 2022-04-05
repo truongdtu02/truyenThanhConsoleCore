@@ -396,13 +396,14 @@ namespace UDPTCPcore
 
             CountdownEvent _countdown = new CountdownEvent(1);
             double intervalSend = NUM_OF_FRAME_SEND_PER_PACKET * Program.time_per_frame;
-            int _countdownTimeout = (int)intervalSend;
+            Console.WriteLine($"Interval {intervalSend}. TimePerFrame{Program.time_per_frame}");
+            int _countdownTimeout = 2 * (int)intervalSend;
             System.Timers.Timer sendTimer = new System.Timers.Timer(intervalSend);
             InitiliazeSendTimer(sendTimer, _countdown, intervalSend);
             var timeout = TimeSpan.FromMilliseconds(10);
             bool lockTaken = false, madePacketMp3 = false;
 
-            long curTimeMs;
+            long curTimeMs, olddTime = 0;
             long playTimeDelayms = 1000;
 
             while (true)
@@ -459,6 +460,9 @@ namespace UDPTCPcore
                         dv.SendMP3PackAssync();
                     }
                 }
+                long tmp = (DateTimeOffset.Now.ToUnixTimeMilliseconds()) - olddTime;
+                Console.WriteLine($"{tmp}");
+                olddTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
                 //wait until next cycle
                 bool res = _countdown.Wait(_countdownTimeout); //wait after interval
