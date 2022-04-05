@@ -413,11 +413,10 @@ namespace UDPTCPcore
             curTimeMs = startTimeCycleMs;
             while (true)
             {
-
                 for (int sendStt = 0; sendStt < 10; sendStt++)
                 {
                     madePacketMp3 = false;
-                    curTimeMs += sendStt * (long)(120);
+                    curTimeMs += 120;
 
                     try
                     {
@@ -478,7 +477,7 @@ namespace UDPTCPcore
                 cycleCnt++;
                 //if (tmp > 200 || tmp < -200)
                 //Console.WriteLine($"{offsetCycle}");
-                Log.Logger.Information("Offset: {0}", offsetCycle);
+                Log.Logger.Information("Offset: {0} {1}", offsetCycle, (DateTimeOffset.Now.ToUnixTimeMilliseconds() - curTimeMs));
             }
 
             //while (true)
