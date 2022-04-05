@@ -395,12 +395,15 @@ namespace UDPTCPcore
 
             int NUM_OF_FRAME_SEND_PER_PACKET = Program.frames_per_packet;
 
+            int NUM_SEND_PER_SYCLE = 5;
+
             CountdownEvent _countdown = new CountdownEvent(1);
-            double intervalSend = 10 * NUM_OF_FRAME_SEND_PER_PACKET * Program.time_per_frame;
-            Console.WriteLine($"Interval {intervalSend}. TimePerFrame{Program.time_per_frame}");
-            int _countdownTimeout = 2 * (int)intervalSend;
-            System.Timers.Timer sendTimer = new System.Timers.Timer(intervalSend);
-            InitiliazeSendTimer(sendTimer, _countdown, intervalSend);
+            double intervalSend = NUM_OF_FRAME_SEND_PER_PACKET * Program.time_per_frame;
+            double intervalCycle = NUM_SEND_PER_SYCLE * NUM_OF_FRAME_SEND_PER_PACKET * Program.time_per_frame;
+            Console.WriteLine($"Interval {intervalCycle}. TimePerFrame{Program.time_per_frame}");
+            int _countdownTimeout = 2 * (int)intervalCycle;
+            System.Timers.Timer sendTimer = new System.Timers.Timer(intervalCycle);
+            InitiliazeSendTimer(sendTimer, _countdown, intervalCycle);
             var timeout = TimeSpan.FromMilliseconds(10);
             bool lockTaken = false, madePacketMp3 = false;
 
@@ -414,7 +417,7 @@ namespace UDPTCPcore
             while (true)
             {
                 curTimeMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                for (int sendStt = 0; sendStt < 10; sendStt++)
+                for (int sendStt = 0; sendStt < NUM_SEND_PER_SYCLE; sendStt++)
                 {
                     madePacketMp3 = false;
                     try
@@ -456,7 +459,7 @@ namespace UDPTCPcore
                         }
                     }
 
-                    curTimeMs += 120;
+                    curTimeMs += (long)intervalSend;
 
                     if (madePacketMp3)
                     {
@@ -474,7 +477,7 @@ namespace UDPTCPcore
                 bool res = _countdown.Wait(_countdownTimeout); //wait after interval
                 if (res) _countdown.Reset();
 
-                long offsetCycle = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - 1200 * cycleCnt;
+                long offsetCycle = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - (long)intervalCycle * cycleCnt;
                 cycleCnt++;
                 //if (tmp > 200 || tmp < -200)
                 //Console.WriteLine($"{offsetCycle}");
