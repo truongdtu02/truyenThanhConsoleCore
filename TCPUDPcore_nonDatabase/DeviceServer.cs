@@ -474,10 +474,11 @@ namespace UDPTCPcore
                 bool res = _countdown.Wait(_countdownTimeout); //wait after interval
                 if (res) _countdown.Reset();
 
-                long tmpp = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - 1200 * cycleCnt;
+                long offsetCycle = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - 1200 * cycleCnt;
                 cycleCnt++;
                 //if (tmp > 200 || tmp < -200)
-                    Console.WriteLine($"{tmpp}");
+                //Console.WriteLine($"{offsetCycle}");
+                Log.Logger.Information("Offset: {0}", offsetCycle);
             }
 
             //while (true)
