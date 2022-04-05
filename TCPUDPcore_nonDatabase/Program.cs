@@ -60,9 +60,18 @@ namespace UDPTCPcore
                 listID_host_api_cycle = Convert.ToUInt32(nd["list_id_request_cycle"].InnerText);
             }
 
-            //can't run in local computer
-            //NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
-            //ntpServer.Start();
+            NTPServer ntpServer;
+            if (OperatingSystem.IsWindows())
+            {
+                //can't run in local computer
+                //NTPServer ntpServer = host.Services.GetRequiredService<NTPServer>();
+                //ntpServer.Start();
+            }
+            else
+            {
+                ntpServer = host.Services.GetRequiredService<NTPServer>();
+                ntpServer.Start();
+            }
 
             deviceServer = host.Services.GetRequiredService<DeviceServer>();
             //server_tcp_thread = new Thread(() => { deviceServer.Run(); });
