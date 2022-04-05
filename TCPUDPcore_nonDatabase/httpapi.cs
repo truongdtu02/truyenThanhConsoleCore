@@ -19,6 +19,7 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
 
 namespace UDPTCPcore
 {

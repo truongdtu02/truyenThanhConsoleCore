@@ -11,7 +11,7 @@ using Serilog;
 
 namespace UDPTCPcore
 {
-    class TLSSession : TcpSession
+    class TLSSession : NetCoreServer.TcpSession
     {
         //debug
         const int CONNECT_TIMEOUT = 10 * 1000; //10s for TLS handshake
