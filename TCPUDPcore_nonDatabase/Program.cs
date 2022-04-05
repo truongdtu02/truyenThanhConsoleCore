@@ -74,10 +74,10 @@ namespace UDPTCPcore
             }
 
             deviceServer = host.Services.GetRequiredService<DeviceServer>();
-            //server_tcp_thread = new Thread(() => { deviceServer.Run(); });
-            ////deviceServer.Run();
-            //server_tcp_thread.Priority = ThreadPriority.Highest;
-            //server_tcp_thread.Start();
+            server_tcp_thread = new Thread(() => { deviceServer.Run(); });
+            //deviceServer.Run();
+            server_tcp_thread.Priority = ThreadPriority.Highest;
+            server_tcp_thread.Start();
 
             //api_request_thread
             api_request_thread = new Thread(async () =>
@@ -95,7 +95,7 @@ namespace UDPTCPcore
             api_server_thread.Priority = ThreadPriority.Lowest;
             api_server_thread.Start();
 
-            deviceServer.Run();
+            //deviceServer.Run();
 
             while (true) { }
         }
