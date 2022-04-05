@@ -396,7 +396,7 @@ namespace UDPTCPcore
             int NUM_OF_FRAME_SEND_PER_PACKET = Program.frames_per_packet;
 
             CountdownEvent _countdown = new CountdownEvent(1);
-            double intervalSend = NUM_OF_FRAME_SEND_PER_PACKET * Program.time_per_frame;
+            double intervalSend = 10 * NUM_OF_FRAME_SEND_PER_PACKET * Program.time_per_frame;
             Console.WriteLine($"Interval {intervalSend}. TimePerFrame{Program.time_per_frame}");
             int _countdownTimeout = 2 * (int)intervalSend;
             System.Timers.Timer sendTimer = new System.Timers.Timer(intervalSend);
@@ -404,71 +404,80 @@ namespace UDPTCPcore
             var timeout = TimeSpan.FromMilliseconds(10);
             bool lockTaken = false, madePacketMp3 = false;
 
-            long curTimeMs, olddTime = 0;
+            long curTimeMs, olddTime = 0, startTimeCycleMs = 0;
             long playTimeDelayms = 1000;
 
+            long cycleCnt = 1;
+
+            startTimeCycleMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            curTimeMs = startTimeCycleMs;
             while (true)
             {
-                madePacketMp3 = false;
-                curTimeMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-                try
+                for (int sendStt = 0; sendStt < 10; sendStt++)
                 {
-                    Monitor.TryEnter(lockListSessionPlay, timeout, ref lockTaken);
-                    if (lockTaken)
+                    madePacketMp3 = false;
+                    curTimeMs += sendStt * (long)(120);
+
+                    try
                     {
-                        //make packetMp3 and send to queue of each device
-                        foreach (SessionPlay ss in _listSessionPlay)
+                        Monitor.TryEnter(lockListSessionPlay, timeout, ref lockTaken);
+                        if (lockTaken)
                         {
-                            if (ss.state == SessionPlay.StateSession.stop ||
-                                ss.state == SessionPlay.StateSession.none)
+                            //make packetMp3 and send to queue of each device
+                            foreach (SessionPlay ss in _listSessionPlay)
                             {
+                                if (ss.state == SessionPlay.StateSession.stop ||
+                                    ss.state == SessionPlay.StateSession.none)
+                                {
 
-                                _listSessionStop.Add(ss);
-                                _listSessionPlay.Remove(ss);
+                                    _listSessionStop.Add(ss);
+                                    _listSessionPlay.Remove(ss);
+                                }
+                                else if (ss.type == SessionPlay.TypeSession.mp3)
+                                {
+                                    //PrepareMP3PackAssync, and push to queue of each device
+                                    ss.mp3GenPlay(NUM_OF_FRAME_SEND_PER_PACKET, curTimeMs + playTimeDelayms, curTimeMs);
+                                }
                             }
-                            else if (ss.type == SessionPlay.TypeSession.mp3)
-                            {
-                                //PrepareMP3PackAssync, and push to queue of each device
-                                ss.mp3GenPlay(NUM_OF_FRAME_SEND_PER_PACKET, curTimeMs + playTimeDelayms, curTimeMs);
-                            }
+                            madePacketMp3 = true;
                         }
-                        madePacketMp3 = true;
                     }
-                }
-                catch (Exception e)
-                {
-                    Log.Logger.Error("Exception read list session in deviceServer.Run: {0}", e.Message);
-                    //detail = "server create session fail";
-                }
-                finally
-                {
-                    // Ensure that the lock is released.
-                    if (lockTaken)
+                    catch (Exception e)
                     {
-                        Monitor.Exit(lockListSessionPlay);
-                        lockTaken = false;
+                        Log.Logger.Error("Exception read list session in deviceServer.Run: {0}", e.Message);
+                        //detail = "server create session fail";
                     }
-                }
+                    finally
+                    {
+                        // Ensure that the lock is released.
+                        if (lockTaken)
+                        {
+                            Monitor.Exit(lockListSessionPlay);
+                            lockTaken = false;
+                        }
+                    }
 
-                if (madePacketMp3)
-                {
-                    //send packetMp3 from queue to every device
-                    //SendMP3PackAssync();
-                    foreach (var session in Sessions.Values)
+                    if (madePacketMp3)
                     {
-                        var dv = (DeviceSession)session;
-                        dv.SendMP3PackAssync();
+                        //send packetMp3 from queue to every device
+                        //SendMP3PackAssync();
+                        foreach (var session in Sessions.Values)
+                        {
+                            var dv = (DeviceSession)session;
+                            dv.SendMP3PackAssync();
+                        }
                     }
                 }
-                long tmp = (DateTimeOffset.Now.ToUnixTimeMilliseconds()) - olddTime;
-                if(tmp > 140 || tmp < 100)
-                    Console.WriteLine($"{tmp}");
-                olddTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
                 //wait until next cycle
                 bool res = _countdown.Wait(_countdownTimeout); //wait after interval
                 if (res) _countdown.Reset();
+
+                long tmpp = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - 1200 * cycleCnt;
+                cycleCnt++;
+                //if (tmp > 200 || tmp < -200)
+                    Console.WriteLine($"{tmpp}");
             }
 
             //while (true)
