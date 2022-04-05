@@ -187,7 +187,7 @@ namespace UDPTCPcore
                         doUpdateSession = 1; //new
                         Random rd = new Random();
                         s.sessionMP3 = (UInt32)rd.Next();
-                        updateFail = false;
+                        
                     }
                 }
                 catch (Exception e)
@@ -198,21 +198,7 @@ namespace UDPTCPcore
             }
             else if (s.action == "change" && sessionExist)
             {
-                //_listSessionPlay[sessionIndex].listID.Clear();
-                //_listSessionPlay[sessionIndex].listID = s.listID;
-                //_listSessionPlay[sessionIndex].state = s.state;
                 doUpdateSession = 2; //change
-                if (s.mp3Read != null)
-                {
-                    //detail = mp3Read.TimePerFrame_ms.ToString() + 's';
-                    updateFail = false;
-                }
-                else
-                {
-                    detail = "session mp3 crashed";
-                    //_listSessionPlay[sessionIndex].state = "stop"; //use this to remove session from list
-                    s.state = SessionPlay.StateSession.stop; //use this to remove session from list
-                }
             }
             else
             {
@@ -230,14 +216,26 @@ namespace UDPTCPcore
                         if (doUpdateSession == 1)
                         {
                             _listSessionPlay.Add(s);
+                            detail = ((long)s.mp3Read.TimePerFrame_ms * (long)s.mp3Read.TotalFrame).ToString() + "ms";
+                            updateFail = false;
                         }
                         else
                         {
-                            _listSessionPlay[sessionIndex].listID.Clear();
-                            _listSessionPlay[sessionIndex].listID = s.listID;
-                            _listSessionPlay[sessionIndex].state = s.state;
+                            if (_listSessionPlay[sessionIndex].mp3Read == null)
+                            {
+                                detail = "session mp3 is crashed";
+                                _listSessionPlay[sessionIndex].state = SessionPlay.StateSession.stop;
+                            }
+                            else 
+                            {
+                                _listSessionPlay[sessionIndex].listID.Clear();
+                                _listSessionPlay[sessionIndex].listID = s.listID;
+                                _listSessionPlay[sessionIndex].state = s.state;
+                                detail = ((long)_listSessionPlay[sessionIndex].mp3Read.TimePerFrame_ms * (long)_listSessionPlay[sessionIndex].mp3Read.TotalFrame).ToString() + "ms";
+                                updateFail = false;
+                            }
                         }
-                        detail = ((long)s.mp3Read.TimePerFrame_ms * (long)s.mp3Read.TotalFrame).ToString() + "ms";
+                        
                     }
                     else
                     {
