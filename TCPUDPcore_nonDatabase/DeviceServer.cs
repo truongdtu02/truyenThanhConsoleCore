@@ -409,47 +409,47 @@ namespace UDPTCPcore
 
             while (true)
             {
-                //madePacketMp3 = false;
-                //curTimeMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                madePacketMp3 = false;
+                curTimeMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-                //try
-                //{
-                //    Monitor.TryEnter(lockListSessionPlay, timeout, ref lockTaken);
-                //    if (lockTaken)
-                //    {
-                //        //make packetMp3 and send to queue of each device
-                //        foreach (SessionPlay ss in _listSessionPlay)
-                //        {
-                //            if(ss.state == SessionPlay.StateSession.stop || 
-                //                ss.state == SessionPlay.StateSession.none)
-                //            {
-                                
-                //                _listSessionStop.Add(ss);
-                //                _listSessionPlay.Remove(ss);
-                //            }
-                //            else if (ss.type == SessionPlay.TypeSession.mp3)
-                //            {
-                //                //PrepareMP3PackAssync, and push to queue of each device
-                //                ss.mp3GenPlay(NUM_OF_FRAME_SEND_PER_PACKET, curTimeMs + playTimeDelayms, curTimeMs);
-                //            }
-                //        }
-                //        madePacketMp3 = true;
-                //    }
-                //}
-                //catch (Exception e)
-                //{
-                //    Log.Logger.Error("Exception read list session in deviceServer.Run: {0}", e.Message);
-                //    //detail = "server create session fail";
-                //}
-                //finally
-                //{
-                //    // Ensure that the lock is released.
-                //    if (lockTaken)
-                //    {
-                //        Monitor.Exit(lockListSessionPlay);
-                //        lockTaken = false;
-                //    }
-                //}
+                try
+                {
+                    Monitor.TryEnter(lockListSessionPlay, timeout, ref lockTaken);
+                    if (lockTaken)
+                    {
+                        //make packetMp3 and send to queue of each device
+                        foreach (SessionPlay ss in _listSessionPlay)
+                        {
+                            if (ss.state == SessionPlay.StateSession.stop ||
+                                ss.state == SessionPlay.StateSession.none)
+                            {
+
+                                _listSessionStop.Add(ss);
+                                _listSessionPlay.Remove(ss);
+                            }
+                            else if (ss.type == SessionPlay.TypeSession.mp3)
+                            {
+                                //PrepareMP3PackAssync, and push to queue of each device
+                                ss.mp3GenPlay(NUM_OF_FRAME_SEND_PER_PACKET, curTimeMs + playTimeDelayms, curTimeMs);
+                            }
+                        }
+                        madePacketMp3 = true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Logger.Error("Exception read list session in deviceServer.Run: {0}", e.Message);
+                    //detail = "server create session fail";
+                }
+                finally
+                {
+                    // Ensure that the lock is released.
+                    if (lockTaken)
+                    {
+                        Monitor.Exit(lockListSessionPlay);
+                        lockTaken = false;
+                    }
+                }
 
                 if (madePacketMp3)
                 {
@@ -462,7 +462,8 @@ namespace UDPTCPcore
                     }
                 }
                 long tmp = (DateTimeOffset.Now.ToUnixTimeMilliseconds()) - olddTime;
-                Console.WriteLine($"{tmp}");
+                if(tmp > 140 || tmp < 100)
+                    Console.WriteLine($"{tmp}");
                 olddTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
                 //wait until next cycle
