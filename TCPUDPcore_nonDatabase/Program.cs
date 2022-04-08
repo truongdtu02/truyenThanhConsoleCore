@@ -102,10 +102,20 @@ namespace UDPTCPcore
 
         static void BuildConfig(IConfigurationBuilder builder)
         {
-            builder.SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENRT") ?? "Production"}.json", optional: true)
-                .AddEnvironmentVariables();
+            if (OperatingSystem.IsWindows())
+            {
+                builder.SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettingsWin.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENRT") ?? "Production"}.json", optional: true)
+                    .AddEnvironmentVariables();
+            }
+            else
+            {
+                builder.SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettingsLinux.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENRT") ?? "Production"}.json", optional: true)
+                    .AddEnvironmentVariables();
+            }
         }
         static void StartUp()
         {
