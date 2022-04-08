@@ -29,7 +29,7 @@ namespace UDPTCPcore
             ReceiveAsync();
         }
 
-        UInt16 caculateChecksum(byte[] data, int offset, int length)
+        internal static UInt16 caculateChecksum(byte[] data, int offset, int length)
         {
             UInt32 checkSum = 0;
             int index = offset;

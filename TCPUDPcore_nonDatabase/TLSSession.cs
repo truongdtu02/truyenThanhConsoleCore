@@ -234,6 +234,8 @@ namespace UDPTCPcore
             return true;
         }
 
+
+
         enum SaltEnum { Add, Sub};
         void ConvertTextWithSalt(byte[] data, int offset, int len, SaltEnum saltType)
         {
@@ -353,7 +355,7 @@ namespace UDPTCPcore
                 }
                 
                 //debug
-                if(curPacketSize == 8 && IsHandshaked) 
+                else if(curPacketSize == 8 && IsHandshaked) 
                 {
                     int conTime = BitConverter.ToInt32(Tcpbuff, 2);
                     int missTimeFrame = BitConverter.ToInt32(Tcpbuff, 6);
@@ -361,6 +363,30 @@ namespace UDPTCPcore
 
                     ErrorRecv = false;
                 }
+                else if(curPacketSize == 6 && IsHandshaked) //ntp request
+                {
+                    //checksum first
+                    UInt16 checkSum = NTPServer.caculateChecksum(Tcpbuff, 2, 4);
+                    if (checkSum != BitConverter.ToUInt16(Tcpbuff, 2 + 4)) return;
+
+                    UInt32 deviceClock = BitConverter.ToUInt32(Tcpbuff, 2) / 2;
+
+                    long curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    _log.LogInformation($"NTP {curTime}. Device clock_monotonic: {deviceClock}");
+
+                    byte[] sendBuff = new byte[16]; //2B len, 8B server time, 4B client time, 2B checksum
+                    System.Buffer.BlockCopy(BitConverter.GetBytes(curTime), 0, sendBuff, 0 + 2, 8);
+                    System.Buffer.BlockCopy(Tcpbuff, 2, sendBuff, 8 + 2, 4);
+
+                    checkSum = NTPServer.caculateChecksum(sendBuff, 0 + 2, 12);
+
+                    System.Buffer.BlockCopy(BitConverter.GetBytes(checkSum), 0, sendBuff, 12 + 2, 2);
+
+                    SendPacketAsyncNoEncrypt(sendBuff);
+
+                    ErrorRecv = false;
+                }
+                //
             }
             
             if (ErrorRecv)
@@ -467,7 +493,7 @@ namespace UDPTCPcore
         {
             //check data array
 
-            if (data != null && AESkey != null && data.Length >= (TcpPacketStruct.HEADER_LEN + AES.AES_BLOCK_LEN)) // 2B len, 16B md5
+            if (data != null && AESkey != null && data.Length > 2) // 2B len, 16B md5
             {
                 int len = data.Length;
                 //byte[] md5Checksum = MD5.MD5Hash(data, TcpPacketStruct.POS_OF_PAYLOAD, len - TcpPacketStruct.HEADER_LEN);
@@ -483,8 +509,10 @@ namespace UDPTCPcore
                 string sendString = "*" + Convert.ToHexString(BitConverter.GetBytes(idPacket)) + Convert.ToHexString(data) + "#"; //end with "#"
 
                 idPacket++;
-
-                return SendAsync(sendString);
+                
+                bool res = SendAsync(sendString);
+                Log.Logger.Information($"BytesPending {BytesPending} BytesSending {BytesSending}");
+                return res;
             }
             return false;
         }
