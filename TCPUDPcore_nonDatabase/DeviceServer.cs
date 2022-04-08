@@ -471,15 +471,35 @@ namespace UDPTCPcore
                     }
                 }
 
-                //wait until next cycle
-                bool res = _countdown.Wait(_countdownTimeout); //wait after interval
-                if (res) _countdown.Reset();
+                //wait until next cycle - use countdown
+                //bool res = _countdown.Wait(_countdownTimeout); //wait after interval
+                //if (res) _countdown.Reset();
 
-                long offsetCycle = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - (long)intervalCycle * cycleCnt;
-                cycleCnt++;
+                //long offsetCycle = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTimeCycleMs) - (long)intervalCycle * cycleCnt;
+                //cycleCnt++;
+                ////if (offsetCycle > 200 || offsetCycle < -200)
+                ////Console.WriteLine($"{offsetCycle}");
+                //Log.Logger.Information("Offset: {0} {1}", offsetCycle, (DateTimeOffset.Now.ToUnixTimeMilliseconds() - curTimeMs));
+
+                //wait until next cycle use Thread.Sleep
+                long remainTime =  startTimeCycleMs + (long)intervalCycle * cycleCnt - DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                
                 //if (offsetCycle > 200 || offsetCycle < -200)
                 //Console.WriteLine($"{offsetCycle}");
-                    Log.Logger.Information("Offset: {0} {1}", offsetCycle, (DateTimeOffset.Now.ToUnixTimeMilliseconds() - curTimeMs));
+                Log.Logger.Information($"Remain time {remainTime}. Count {cycleCnt}. IntervalCycle {intervalCycle}");
+                if(remainTime > 0)
+                {
+                    Thread.Sleep((int)remainTime);
+                }
+
+                long offset = startTimeCycleMs + (long)intervalCycle * cycleCnt - DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                Log.Logger.Information("Offset {0}", offset);
+                if(offset > (intervalCycle / 2) || offset < (-(intervalCycle / 2)))
+                {
+                    Log.Logger.Warning("Cycle out-of-time. Offset: {0}", offset);
+                }
+
+                cycleCnt++;
             }
 
             //while (true)
